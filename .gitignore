@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Databases and any captured data live outside version control, always.
+data/
+*.db
+*.sqlite
+
+# Raw labeled sessions must be synthetic-ified before commit; keep originals out.
+presence/eval/labels/raw/
+
+# API keys live in .env, never in version control.
+.env
+
+# Generated pages embed real derived state; rebuild from template instead.
+presence/render/ambient.html
+
+# Local extractor-output notes contain T0 evidence strings. Never commit.
+v1-outputs-*.md
+v1_outputs*.md
