@@ -19,6 +19,7 @@ from datetime import datetime
 
 from presence.pipeline import extract_all
 from presence.pipeline.config import GROUP_CACHE, PERSON_ID, PUBLIC_DB
+from presence.pipeline.pause import is_paused
 from presence.pipeline.relay_client import RelayClient
 from presence.pipeline.store import PublicStore
 from presence.render.build_page import build
@@ -46,6 +47,11 @@ def main() -> None:
     print(f"we.ather watch: extracting every 5 min ({mode}) · Ctrl-C to stop")
     while True:
         stamp = f"[{datetime.now():%H:%M}]"
+        if is_paused():
+            print(f"{stamp} paused — no capture, no push (resume with:"
+                  " python -m presence.pipeline.pause resume)")
+            time.sleep(INTERVAL_SECONDS)
+            continue
         try:
             counts = extract_all.run(min_minutes=LIVE_MIN_MINUTES, verbose=False)
             store = PublicStore(PUBLIC_DB)

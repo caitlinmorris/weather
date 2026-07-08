@@ -46,9 +46,16 @@ RelayClient + watch-loop push/pull with group-cache rendering and local
 fallback, and Fly deploy scaffolding (fly.toml + Dockerfile — needs only a
 Fly account + `fly launch` + token secrets). Verified end-to-end against a
 live local relay: two people over the wire, page rendered from the relay's
-group view, revocation purging within one fetch. Remaining: item 4
-(installer + pause command + cold test) and item 5 (friend API key), plus
-the actual Fly deploy.
+group view, revocation purging within one fetch.
+
+**Update 2026-07-10:** item 4 built — config is now .env-driven (identity,
+group mode, allowlist), `install.sh` (interactive, with allowlist picker as
+the consent-layer-(a) step), `pause`/`resume`/`status` consent switch wired
+into the watch loop, `migrate_identity` for the projects→person flip,
+`selftest` (zero-API-cost end-to-end check), and docs/pilot-kit.md (friend-
+facing instructions). Remaining: Fly deploy (Caitlin's account), friend API
+key (Console, spend-capped), cold test of install.sh on a fresh macOS user
+account, and the go/no-go gates before the actual invite.
 
 0. **CaptureSource interface** (if the friend doesn't use Claude Code): see
    docs/multi-tool-capture.md — verified adapters exist to be written for

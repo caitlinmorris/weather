@@ -1,25 +1,21 @@
-# we.ather relay on Fly.io. (Fly app names are DNS labels — no dots allowed —
-# hence "we-ather-relay".) Deploy steps (one time):
-#   fly launch --no-deploy          # accept this config, pick a region
-#   python -m presence.relay.mktoken caitlin   # and one per friend
-#   fly secrets set RELAY_TOKENS='{"caitlin": "<hash>", "dan": "<hash>"}'
-#   fly deploy
-# State is in-memory by design (see docs/security-model.md): a restart just
-# means everyone re-appears on their next push, within minutes.
+# fly.toml app configuration file generated for we-ather-relay on 2026-07-08T10:24:39-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
-app = "we-ather-relay"
-primary_region = "ewr"
+app = 'we-ather-relay'
+primary_region = 'ewr'
 
 [build]
-  dockerfile = "presence/relay/Dockerfile"
+  dockerfile = 'presence/relay/Dockerfile'
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "off"    # polling every 60s needs the machine warm
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
 
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "256mb"
+  size = 'shared-cpu-1x'
+  memory = '256mb'
