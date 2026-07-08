@@ -230,8 +230,13 @@ let playing = false, lastFrame = 0, mouse = { x: -1, y: -1 };
 
 if (LIVE) {
   document.body.classList.add("live");
+  // The page's own mtime is the build stamp — self-contained, no
+  // placeholder contract with build_page (version skew bit us once).
+  const built = new Date(document.lastModified);
   document.getElementById("caption").textContent =
-    "live · page built __BUILT__ · field spans 4h";
+    "live · page built " +
+    built.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+    " · field spans 4h";
   // Cache-busted reload: WKWebView serves cached file:// content on plain
   // location.reload(), so the widget would silently freeze at launch-time
   // data. A fresh query string forces a disk read every cycle.

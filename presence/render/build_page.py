@@ -74,14 +74,8 @@ def build(
     if not data and not allow_empty:
         raise SystemExit("public store is empty — run extract_all first")
     data = data or []  # first run: an empty, honest "still air" field
-    from datetime import datetime
-
     payload = json.dumps(data).replace("</", "<\\/")
-    html = TEMPLATE.read_text().replace("__DATA__", payload)
-    # Build-time stamp in the caption: page staleness must be visible on the
-    # widget itself, not discoverable only by debugging.
-    html = html.replace("__BUILT__", datetime.now().strftime("%H:%M"))
-    out.write_text(html)
+    out.write_text(TEMPLATE.read_text().replace("__DATA__", payload))
     return out
 
 
