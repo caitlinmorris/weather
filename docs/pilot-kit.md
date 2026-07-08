@@ -2,7 +2,7 @@
 
 *You're joining a tiny (2–3 person) pilot of an ambient awareness experiment:
 a small always-on-top widget showing the group's work as slowly drifting
-weather — never message content, never a productivity score. Read
+weather — never message content. Read
 [security-model.md](security-model.md) first (one page): it shows the exact
 JSON that ever leaves your machine.*
 
@@ -40,6 +40,9 @@ default view is attributed to a person. Hover an outlined block to see a
 short activity phrase; the `signal` button controls how much a hover reveals
 — including whether names ever appear. Set it wherever feels right; where
 you leave it is part of what the pilot measures.
+
+Settings live in `.env`; if you ever edit it, **restart the app afterward** —
+settings are read once at launch.
 
 ## Stepping away, pausing, quitting
 

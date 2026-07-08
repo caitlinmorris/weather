@@ -26,7 +26,8 @@ echo "dependencies installed"
 # 3. .env
 if [ -f .env ]; then
   echo
-  echo ".env already exists — keeping it. (Edit it by hand to change settings.)"
+  echo ".env already exists — keeping it. (Edit it by hand to change settings,"
+  echo "then RESTART the we.ather app — settings are read at launch.)"
 else
   echo
   read -r -p "your short name (lowercase, e.g. dan): " PERSON

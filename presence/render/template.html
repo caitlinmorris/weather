@@ -54,6 +54,8 @@
   }
   #keyrow.show { display: block; }
   #keyrow i { font-style: normal; }
+  /* Dot and its label never wrap apart. */
+  #keyrow .ki { white-space: nowrap; margin: 0 3px; display: inline-block; }
   #weather {
     text-align: center; color: var(--muted); font-style: italic;
     font-size: 11px; min-height: 17px; margin-top: 2px;
@@ -217,7 +219,7 @@ let playing = false, lastFrame = 0, mouse = { x: -1, y: -1 };
 if (LIVE) {
   document.body.classList.add("live");
   document.getElementById("caption").textContent =
-    "live · data refreshes ~2 min · field spans 4h, now at right edge";
+    "live · data refreshes ~2 min · field spans 4h";
   setInterval(() => location.reload(), 120e3);
 } else {
   document.getElementById("caption").textContent =
@@ -477,8 +479,9 @@ function setTheme(name) {
 function renderKey() {
   keyRow.innerHTML = Object.entries(THEMES[theme].hues)
     .filter(([k]) => k !== "unknown")
-    .map(([k, v]) => '<i style="color:' + v + '">●</i> ' + k.replace("_", " "))
-    .join(" &nbsp; ");
+    .map(([k, v]) => '<span class="ki"><i style="color:' + v + '">●</i> '
+      + k.replace("_", " ") + "</span>")
+    .join(" ");
   keyRow.classList.toggle("show", showKey);
 }
 themeBtn.onclick = () => setTheme(theme === "dark" ? "light" : "dark");
