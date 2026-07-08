@@ -94,7 +94,13 @@ def create_app(token_hashes: dict[str, str] | None = None) -> FastAPI:
             raise HTTPException(403, "token may only write its own state")
         ring = rings[person]
         _prune(ring)
-        ring.append((time.time(), state.model_dump(mode="json")))
+        payload = state.model_dump(mode="json")
+        # Idempotent by timestamp: clients backfill their recent window every
+        # cycle, so the ring self-heals after client or relay restarts without
+        # accumulating duplicates.
+        if any(s["updated_at"] == payload["updated_at"] for _, s in ring):
+            return
+        ring.append((time.time(), payload))
 
     @app.get("/group")
     def group(person: str = Depends(authed_person)):
