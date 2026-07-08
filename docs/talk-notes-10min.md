@@ -1,17 +1,16 @@
-# Talk Notes — "Ambient Social Presence for AI Work" (10 min) — v2
+# Talk Notes — "Ambient Social Presence for AI Work" (10 min) — v3
 
-*Restructured 2026-07-06: leads with the higher-level why (social translucency
-as a general quality of work), opens the design space explicitly before taking
-a stance, shows the built thing as one glimpse rather than an architecture
-tour, and closes on what 6–7 remaining weeks can genuinely contribute. Same
-day, second pass: slide 2 now centers the glance-outcome spectrum (what is a
-glance supposed to* do*? — from café-grade nothing to the licensed opener to
-brokered intros), and slide 3 gained the commit-stream contrast (artifact
-trails inflating as AI writes the artifacts; narration as the signal that
-moved upstream). Format: ~7 moments / ~9 min talking, timings in brackets,
-bold = candidate verbatim phrasings. Prior version preserved at
-talk-notes-10min-v0.md; the deep technical spine lives there and in the
-architecture docs if Q&A wants it.*
+*v2 (2026-07-06): leads with the higher-level why, opens the design space
+(connection / coordination / companionship + the glance-outcome spectrum)
+before taking a stance, adds the commit-stream contrast (artifact trails
+inflating as AI writes the artifacts). v3 (2026-07-10): the design decisions
+became content. Slide 4 now carries the lived dot→weather pivot (surveillance
+grammar, discovered by self-dogfooding, demoed via the view toggle); slide 5
+generalizes it — "form is policy" — folding the privacy inversion together
+with boards-vs-follows and the audience-loud/activity-quiet rule from
+docs/social-topology.md. Format: ~7 moments, timings in brackets, bold =
+candidate verbatim phrasings. Prior versions: talk-notes-10min-v0.md; deep
+technical spine lives in the architecture docs if Q&A wants it.*
 
 ---
 
@@ -90,42 +89,59 @@ glance is allowed to cause.)*
   with no artifact."** The same shift that devalued the old signal created
   the new one.
 
-## 4. What I've built (one week in) [1:45]
+## 4. What I've built — and what living with it taught me [2:00]
 
-*(Demo beat: the live widget, plus the replay if time. Keep it a glimpse, not
-an architecture tour.)*
+*(Demo beat: the live widget, using the view toggle to show BOTH grammars.
+Keep it a glimpse, not an architecture tour.)*
 
-- The pipeline is real and running on me: my last three months of AI-assisted
-  work, distilled into small typed state objects — topic, phase, momentum,
-  openness — **on my machine; raw chat never leaves it. What crosses the
-  boundary is a state vector of the worker, never a summary of the chat.**
-- Show the widget: dots, warmth, decay; a weather line; hover for a
-  five-word handle of "what" — real examples from my own history:
-  *"simplifying participant onboarding," "composing publication figures,"
-  "shipping raise to production."* It sits at the corner of my screen now;
-  I'm living with my own presence for a week before anyone else's.
-- Two honesty mechanisms I'll defend as the interesting engineering:
-  - **Every field can be `unknown`, and abstention renders as a dimmer dot.
-    "An awareness system that hallucinates your mood is worse than none."**
-    I'm hand-labeling my own sessions to publish an actual accuracy number.
-  - Two channels cross-check each other: deterministic behavioral signals
-    (four failed test runs in a row *is* stuckness) against the semantic
-    read — because chat tone lies ("great, let's try it!" on the fourth
-    consecutive failure).
+- The pipeline is real and running on me: months of AI-assisted work
+  distilled into small typed state objects — topic, phase, openness — **on
+  my machine; raw chat never leaves it. What crosses the boundary is a
+  state vector of the worker, never a summary of the chat.** Hover phrases
+  from my real history: *"simplifying participant onboarding," "composing
+  publication figures," "shipping raise to production."*
+- **The pivot the prototype forced.** v1 rendered each person as a glowing
+  dot — faithful to the Babble lineage. After one day of living with it:
+  **"I had rebuilt the Slack presence indicator. The data was private; the
+  *form* wasn't."** Identity × current-status is a loaded grammar — twenty
+  years of chat apps taught everyone, including managers, to read it as
+  "is this person at their desk."
+- The replacement (toggle to it live): an anonymous **weather field** —
+  right edge is now, the last hours trail off left, hue is the kind of
+  work, recurring topics recur at the same height, and nothing is
+  attributed to anyone. **"Position encodes *when*, not *who* — 'is she
+  working right now' stops being a question the display can answer."**
+  Fresh events crystallize as outlined blocks you can hover for a
+  five-word phrase; whether a *name* ever appears is a setting each person
+  controls.
+- One honesty mechanism, said briefly: every field can be `unknown` and
+  renders as abstention — **"an awareness system that hallucinates your
+  mood is worse than none"** — with a measured accuracy number to come.
 
-## 5. The privacy inversion [1:00]
+## 5. Form is policy — the structural choices where tone lives [1:30]
 
-- The design move I most want reactions to: **"The resolution of the display
-  is the privacy policy."** Abstraction isn't an aesthetic; it's the
-  mechanism. The blurrier the rendering, the stronger everyone's deniability —
-  calm and privacy turn out to be the same design parameter.
-- Concretely: every field has a visibility tier (private / aggregate-only /
-  ambient / introduction-eligible); sensitive ones like stuckness default to
-  aggregate-only — the group's weather can be "a lot of grinding today," and
-  no display ever says who. In a cohort of eight, even aggregates can identify
-  people, so anything derivable from one person gets suppressed.
-- The signal *level* is a visible dial on the widget, not a buried setting —
-  **"where people leave the dial is itself a finding."**
+*(The meta-lesson of slide 4, generalized: the surveillance question is
+decided by shapes, not by features or checkboxes.)*
+
+- **Resolution is the privacy policy.** Abstraction is the mechanism, not an
+  aesthetic: every field has a visibility tier; sensitive ones (stuckness)
+  default to aggregate-only — weather can say "a lot of grinding today,"
+  never who. The sharing level is a visible dial on the widget, and it's
+  becoming *per-audience*: more with a partner, less with colleagues.
+  **"Where people leave the dial is itself a finding."**
+- **Boards, not follows.** The social unit is a *place* you're invited
+  into, never a contact you add: everyone on a board sees the same weather
+  and the same member list, so visibility is reciprocal by construction —
+  **"if I can see your weather, you can see mine, and we both know it."**
+  A feed only I compose, of people I chose, is a dashboard of my people —
+  surveillance wearing a friendly UI. No search, no discovery, no
+  "people you may know," ever.
+- The membership rule that falls out, my favorite sentence in the design:
+  **"Who can see you is always loud; whether you're working is always
+  quiet."** Joining and leaving a board are visible to everyone; pausing,
+  lunch, and quitting for the day are indistinguishable from not working.
+- **"In every fork so far, the safer design wasn't a feature we added — it
+  was a shape we chose."**
 
 ## 6. What 6–7 weeks can contribute [1:30]
 
@@ -181,7 +197,13 @@ Three contributions I think are worth having, each testable in the time:
   rebuilds the substrate; introductions fall out at office rates. Also the
   slide-2 answer: I'd rather instrument the question than assume it.
 - **"Won't people perform for the display?"** Maybe — that's a finding, and
-  I'm logging instances. It's hard to peacock through four dim glyphs.
+  I'm logging instances. It's hard to peacock through anonymous weather.
+- **"Why can't I just follow people I find interesting?"** Because a follow
+  is asymmetric attention, and asymmetric attention to someone's work state
+  is the definition of monitoring. Boards make visibility reciprocal by
+  construction, and everyone shares one referent — a room, not n private
+  dashboards. Also the k-anonymity of the weather collapses if every viewer
+  composes their own set.
 - **"What does the extractor see?"** Locally, everything — same trust boundary
   as the AI tool itself. What leaves is typed state at your consented tier,
   and the extractor is instructed and evaluated on omitting personal,
@@ -194,9 +216,10 @@ Three contributions I think are worth having, each testable in the time:
 
 ## Slide count sanity check
 
-7 moments, ~9:15 talking — trim in rehearsal, not on stage. If running long:
-slide 3's first bullet compresses to one sentence inside slide 4's opening
-(the commit-stream inversion is the part of slide 3 to protect), and the
-replay demo drops in favor of the live widget alone. Protect slide 2 above
-everything — the glance-outcome spectrum is the talk's thesis — then slide 5.
-Slide 6 is the one a committee remembers.
+7 moments, ~9:45 talking — over budget on paper; trim in rehearsal, not on
+stage. Cut order if running long: slide 3's first bullet compresses into
+slide 4's opening (protect the commit-stream inversion); slide 1's lineage
+beat becomes one sentence; slide 6's contribution wording tightens. Protect
+slides 2, 4, and 5 above everything — the glance-outcome spectrum is the
+thesis, and the dot→weather story plus "form is policy" are what make this
+audience trust the designer. Slide 6 is the one a committee remembers.
