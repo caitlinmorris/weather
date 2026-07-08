@@ -61,6 +61,28 @@ the second; separated this way they don't conflict.
   know." The tool assumes the relationship exists and rebuilds the room
   around it. (Anti-goals list, extended.)
 
+### Identity and naming at redemption
+
+Today's manual bootstrap requires the joiner to retype their person name
+exactly as the token was minted — scaffolding, not design. The invite flow
+deletes that step rather than forgiving it: the invite carries the identity;
+redemption (`POST /join` with the code) registers the joiner's locally
+generated token hash under it. Nobody types an identity; mismatch becomes
+structurally impossible, and the bearer token never leaves the joiner's
+machine.
+
+Who names you — layered, per the audience-loud principle:
+
+- **The inviter proposes the name.** Members must see "invite open for
+  maya" *before* she joins; the board consents to a person, and a person
+  needs a name at consent time. Pure self-naming at redemption would make
+  the audience list accurate but illegible ("who is 'shadowfax'?").
+- **The joiner owns the display form.** Stable identity is an opaque id
+  bound at redemption; the display name is a self-editable label
+  ("daniel" → "dan"), with changes visible to the board like any
+  audience-adjacent event. Identity is consented to; spelling is
+  self-determined. Renames never break history.
+
 ## 4. Board size
 
 The relay doesn't care; the limit is semantic. Two curves cross:
