@@ -33,7 +33,9 @@ class Phase(str, Enum):
     BUILDING = "building"
     DEBUGGING = "debugging"
     POLISHING = "polishing"
-    WRITING_UP = "writing_up"
+    # "writing", not "writing up": prose can BE the work (essays, papers,
+    # docs), not only documentation of it. Includes documenting.
+    WRITING = "writing"
     UNKNOWN = "unknown"
 
 

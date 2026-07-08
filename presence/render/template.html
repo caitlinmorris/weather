@@ -129,19 +129,22 @@ const NEW_EVENT_GAP_H = 4; // activity after this gap counts as a fresh event
 const NOISE_DENSITY = 0.07;
 
 const THEMES = {
+  // writing is the palette's only warm-neutral (parchment — prose as paper),
+  // keeping all seven values hue-distinct; shaping's cyan is saturated to
+  // pull it clear of anything blue.
   dark: {
     label: "#7a8496", outline: "#dde3ec", noise: "#8b93a3",
     hues: {
-      exploring: "#a78bfa", shaping: "#67e8f9", building: "#6ee7a0",
-      debugging: "#fbbf24", polishing: "#f9a8d4", writing_up: "#93c5fd",
+      exploring: "#a78bfa", shaping: "#22d3ee", building: "#6ee7a0",
+      debugging: "#fbbf24", polishing: "#f9a8d4", writing: "#d9b380",
       unknown: "#8b93a3",
     },
   },
   light: {
     label: "#77818f", outline: "#1f2733", noise: "#6b7280",
     hues: {
-      exploring: "#7c5cd6", shaping: "#0e94ad", building: "#1f9d5a",
-      debugging: "#b7791f", polishing: "#d6588e", writing_up: "#3b82d4",
+      exploring: "#7c5cd6", shaping: "#0891b2", building: "#1f9d5a",
+      debugging: "#b7791f", polishing: "#d6588e", writing: "#7a6230",
       unknown: "#6b7280",
     },
   },
@@ -160,7 +163,10 @@ let theme = prefs.getItem("presence.theme") === "light" ? "light" : "dark";
 let showKey = prefs.getItem("presence.key") === "1";
 let view = VIEWS.includes(prefs.getItem("presence.view")) ? prefs.getItem("presence.view") : "field";
 
-DATA.forEach(p => p.states.forEach(s => s.ms = Date.parse(s.t)));
+DATA.forEach(p => p.states.forEach(s => {
+  s.ms = Date.parse(s.t);
+  if (s.phase === "writing_up") s.phase = "writing";  // legacy pre-v3 value
+}));
 DATA.sort((a, b) => a.person.localeCompare(b.person));
 
 // Fresh-event marking: first activity, return after a gap, or topic change.
@@ -406,8 +412,10 @@ function draw(now) {
     if (ageH < ACTIVE_H) active++; else if (ageH < 24) recent++;
     if (ageH < 24) phases.push(s.phase);
   }
-  let weather = active ? active + (active > 1 ? " people" : " person") + " working now"
-    : recent ? recent + " seen today" : "quiet";
+  // Weather-metaphor phrasing, deliberately not "working": activity makes
+  // the shared weather rather than being monitored by it.
+  let weather = active ? active + " making weather"
+    : recent ? recent + " in the air today" : "still air";
   const mode = majority(phases);
   if (mode && mode !== "unknown") weather += " · mostly " + mode.replace("_", " ");
   if (weather !== weatherCache) {

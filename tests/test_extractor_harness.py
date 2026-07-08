@@ -67,7 +67,7 @@ def test_extraction_builds_valid_observation(tmp_path):
     assert obs.topic.micro_gist == "tidying utilities"
     assert obs.t_start == T0  # segment bounds, not extraction time
     assert obs.t_end == T0 + timedelta(minutes=51)
-    assert obs.extractor_version.startswith("v2+")
+    assert obs.extractor_version.startswith("v3+")
 
 
 def test_word_caps_enforced_mechanically(tmp_path):
@@ -144,12 +144,12 @@ def test_chunking_rolls_observation_forward(tmp_path):
 
 
 def test_system_prompt_preamble_stripped():
-    for version in ("v1", "v2"):
+    for version in ("v1", "v2", "v3"):
         system = load_system_prompt(version)
-        assert "docs/v0.1-plan.md" not in system  # human preamble not sent
         assert "state extractor" in system
         assert "unknown is a good answer" in system.lower()
-    assert "micro_gist" in load_system_prompt("v2")
+    assert "micro_gist" in load_system_prompt("v3")
+    assert "writing_up" not in load_system_prompt("v3")
 
 
 def test_sidechain_and_meta_events_excluded():

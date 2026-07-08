@@ -56,6 +56,11 @@ def test_duplicate_pushes_dedup_by_timestamp(client):
         assert client.post("/state", json=wire(), headers=auth(TOK_A)).status_code == 204
     group = client.get("/group", headers=auth(TOK_B)).json()
     assert len(group["per_person"][0]["states"]) == 1
+    # Latest write wins: a corrected state replaces its stale ring entry.
+    client.post("/state", json=wire(phase="polishing"), headers=auth(TOK_A))
+    group = client.get("/group", headers=auth(TOK_B)).json()
+    assert len(group["per_person"][0]["states"]) == 1
+    assert group["per_person"][0]["states"][0]["phase"] == "polishing"
     # A different timestamp is a new entry, not a duplicate.
     later = wire(updated_at="2026-07-08T10:00:00+00:00")
     client.post("/state", json=later, headers=auth(TOK_A))

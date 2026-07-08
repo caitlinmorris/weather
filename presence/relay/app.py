@@ -95,11 +95,14 @@ def create_app(token_hashes: dict[str, str] | None = None) -> FastAPI:
         ring = rings[person]
         _prune(ring)
         payload = state.model_dump(mode="json")
-        # Idempotent by timestamp: clients backfill their recent window every
-        # cycle, so the ring self-heals after client or relay restarts without
-        # accumulating duplicates.
-        if any(s["updated_at"] == payload["updated_at"] for _, s in ring):
-            return
+        # Idempotent by timestamp, latest-write-wins: clients backfill their
+        # recent window every cycle, so the ring self-heals after restarts
+        # without duplicates — and a re-extracted (corrected) state replaces
+        # its stale ring entry rather than being skipped.
+        for i, (ts, existing) in enumerate(ring):
+            if existing["updated_at"] == payload["updated_at"]:
+                ring[i] = (ts, payload)
+                return
         ring.append((time.time(), payload))
 
     @app.get("/group")
