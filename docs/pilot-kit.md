@@ -14,10 +14,13 @@ JSON that ever leaves your machine.*
 ## Install
 
 ```
-git clone <repo>          # or unzip the folder Caitlin sends
-cd Translucency
+git clone <repo-url>      # or unzip the folder Caitlin sends
+cd <the folder that created>   # its name depends on the repo / zip
 ./install.sh
 ```
+
+(If macOS complains the script isn't executable after a zip transfer:
+`chmod +x install.sh` first.)
 
 The installer asks four things: your short name, the API key, the relay
 URL + token, and — the important one — **which project folders we.ather may
