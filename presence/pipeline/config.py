@@ -19,9 +19,42 @@ ALLOWED_PROJECT_PREFIXES = [
 
 SESSION_GAP_MINUTES = 30
 
+# --- identity -----------------------------------------------------------------
+# GROUP_MODE "projects": each project renders as a pseudo-person (the replay /
+# demo trick). GROUP_MODE "person": all allowlisted projects roll up into one
+# human — PERSON_ID — which is what a real multi-person pilot requires.
+# Flipping to "person" re-keys extraction; existing observations can be
+# migrated with migrate_person_ids() in store.py or simply re-extracted.
+GROUP_MODE = "projects"
+PERSON_ID = "caitlin"
+
+
+def person_for_project(project_dir_name: str) -> str:
+    if GROUP_MODE == "person":
+        return PERSON_ID
+    return project_dir_name.rsplit("-", 1)[-1]
+
+
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 PRIVATE_DB = DATA_DIR / "private.db"
 PUBLIC_DB = DATA_DIR / "public.db"
+GROUP_CACHE = DATA_DIR / "group_cache.json"
+
+
+def env_value(name: str) -> str | None:
+    """Read a setting from the environment, falling back to repo-root .env."""
+    import os
+
+    value = os.environ.get(name)
+    if value:
+        return value
+    env_file = Path(__file__).resolve().parents[2] / ".env"
+    if env_file.is_file():
+        for line in env_file.read_text().splitlines():
+            line = line.strip()
+            if line.startswith(f"{name}="):
+                return line.split("=", 1)[1].strip().strip("'\"") or None
+    return None
 
 
 def allowed_project_dirs() -> list[Path]:

@@ -36,8 +36,24 @@ deliberately not simplified further:
   lingers), and P2P/Tailscale (better privacy story, too much setup friction
   to ask of a friend; revisit if the relay ever feels wrong).
 
-## The build list (≈2–3 days with Opus, in order)
+## The build list — STATUS 2026-07-08: items 1–3 built and tested
 
+Built with Fable: person-identity config (GROUP_MODE/PERSON_ID + db
+migration helper; default still "projects" so nothing changes until the
+pilot flips it), the relay (hashed tokens, wire-whitelist tier enforcement,
+TTL ring buffer, 8 security tests mapped to docs/security-model.md), the
+RelayClient + watch-loop push/pull with group-cache rendering and local
+fallback, and Fly deploy scaffolding (fly.toml + Dockerfile — needs only a
+Fly account + `fly launch` + token secrets). Verified end-to-end against a
+live local relay: two people over the wire, page rendered from the relay's
+group view, revocation purging within one fetch. Remaining: item 4
+(installer + pause command + cold test) and item 5 (friend API key), plus
+the actual Fly deploy.
+
+0. **CaptureSource interface** (if the friend doesn't use Claude Code): see
+   docs/multi-tool-capture.md — verified adapters exist to be written for
+   Codex (~0.5–1d), Hermes (~0.5d), Warp (~1–2d). Do together with item 1;
+   they touch the same files. Skip if the friend is on Claude Code.
 1. **Person-identity refactor — the hidden prerequisite.** Today
    `person_id` = project directory (the pseudo-people demo trick). Multi-person
    mode needs one dot per *human*: a `PERSON_ID` in config; all allowlisted
@@ -92,8 +108,10 @@ deliberately not simplified further:
    "would I share this" bar (Stage 0 notes are the evidence).
 3. **Install script tested cold** on a second machine or fresh user account —
    not first debugged live on the friend's laptop.
-4. The friend actually uses Claude Code (or accepts the batch-import
-   staleness honestly rendered).
+4. The friend uses a tool with a supported or buildable capture adapter
+   (Claude Code today; Codex/Hermes/Warp per docs/multi-tool-capture.md), or
+   accepts batch-import staleness honestly rendered. Non-Claude tools add a
+   consent sentence: excerpts go to the Anthropic API for extraction.
 
 ## Risks specific to N=2
 

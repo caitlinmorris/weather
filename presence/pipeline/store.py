@@ -85,6 +85,20 @@ class PrivateStore:
         )
         self.conn.commit()
 
+    def migrate_person_ids(self, old_ids: list[str], new_id: str) -> int:
+        """One-time migration when GROUP_MODE flips projects -> person:
+        re-keys existing observations instead of re-extracting them."""
+        total = 0
+        for old in old_ids:
+            cur = self.conn.execute(
+                "UPDATE session_observations SET person_id = ?,"
+                " json = json_set(json, '$.person_id', ?) WHERE person_id = ?",
+                (new_id, new_id, old),
+            )
+            total += cur.rowcount
+        self.conn.commit()
+        return total
+
     def window(
         self, person_id: str, since: datetime
     ) -> list[SessionObservation]:

@@ -11,22 +11,17 @@ from __future__ import annotations
 import sys
 
 from presence.extract.extractor import ExtractionError, Extractor, load_api_key
-from presence.pipeline.config import allowed_project_dirs
+from presence.pipeline.config import allowed_project_dirs, person_for_project
 from presence.pipeline.segmenter import Segment, segment_events
 from presence.pipeline.transcript_parser import parse_transcript
 
 MIN_MINUTES = 10  # short segments make weak eyeball tests
 
 
-def person_id_for(project_dir_name: str) -> str:
-    """Pseudo-person = project (docs/v0.1-plan.md): last path component."""
-    return project_dir_name.rsplit("-", 1)[-1]
-
-
 def gather_segments(min_minutes: int = MIN_MINUTES) -> list[tuple[str, Segment]]:
     pairs = []
     for project in allowed_project_dirs():
-        person = person_id_for(project.name)
+        person = person_for_project(project.name)
         for f in sorted(project.glob("*.jsonl")):
             for seg in segment_events(list(parse_transcript(f))):
                 if seg.duration_minutes >= min_minutes:

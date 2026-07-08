@@ -75,7 +75,7 @@ def test_built_page_contains_only_published_fields(tmp_path):
     public = rollup.open_public_writer(tmp_path / "public.db")
     rollup.publish_history(private, public, "p1")
 
-    out = build(public, out=tmp_path / "ambient.html")
+    out = build(public, out=tmp_path / "ambient.html", allow_cache=False)
     html = out.read_text()
     assert "synthetic status line" in html  # T2 gist is rendered
     assert "synthesizing fixtures" in html  # T2 micro-gist is rendered

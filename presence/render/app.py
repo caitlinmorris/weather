@@ -28,7 +28,7 @@ def main() -> None:
     worker.start()
 
     webview.create_window(
-        "presence",
+        "we.ather",
         url=OUT.as_uri() + "#live",
         width=432,
         height=248,
