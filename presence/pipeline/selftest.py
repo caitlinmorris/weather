@@ -82,6 +82,14 @@ def main() -> None:
             group = client.fetch_group()
             report(PASS, f"relay reachable + token accepted: "
                          f"{len(group.get('per_person', []))} people present")
+            who = client.whoami()
+            if who == config.PERSON_ID:
+                report(PASS, f"relay identity: token matches '{who}'")
+            else:
+                report(FAIL, f"identity mismatch: your token belongs to "
+                             f"'{who}' but PRESENCE_PERSON_ID is "
+                             f"'{config.PERSON_ID}' — every push will be "
+                             f"rejected. Make them match in .env, restart.")
         except Exception as e:
             report(FAIL, f"relay: {e}")
 

@@ -69,6 +69,15 @@ class RelayClient:
         response.raise_for_status()
         return response.json()
 
+    def whoami(self) -> str | None:
+        if not self.enabled:
+            return None
+        response = httpx.get(
+            f"{self.url}/whoami", headers=self._headers(), timeout=TIMEOUT
+        )
+        response.raise_for_status()
+        return response.json().get("person_id")
+
     def revoke(self, person_id: str) -> bool:
         if not self.enabled:
             return False

@@ -125,6 +125,12 @@ def create_app(token_hashes: dict[str, str] | None = None) -> FastAPI:
             raise HTTPException(403, "token may only revoke its own state")
         rings.pop(person, None)  # idempotent: absent is fine
 
+    @app.get("/whoami")
+    def whoami(person: str = Depends(authed_person)):
+        """Which person this token belongs to — lets selftest catch a
+        PRESENCE_PERSON_ID mismatch at install time instead of silent 403s."""
+        return {"person_id": person}
+
     @app.get("/health")
     def health():
         return {"ok": True, "people_present": len([r for r in rings.values() if r])}

@@ -64,12 +64,24 @@ def page_data(store: PublicStore) -> list[dict]:
     return data
 
 
-def build(store: PublicStore, out: Path = OUT, allow_cache: bool = True) -> Path:
+def build(
+    store: PublicStore,
+    out: Path = OUT,
+    allow_cache: bool = True,
+    allow_empty: bool = False,
+) -> Path:
     data = (group_cache_data() if allow_cache else None) or page_data(store)
-    if not data:
+    if not data and not allow_empty:
         raise SystemExit("public store is empty — run extract_all first")
+    data = data or []  # first run: an empty, honest "still air" field
+    from datetime import datetime
+
     payload = json.dumps(data).replace("</", "<\\/")
-    out.write_text(TEMPLATE.read_text().replace("__DATA__", payload))
+    html = TEMPLATE.read_text().replace("__DATA__", payload)
+    # Build-time stamp in the caption: page staleness must be visible on the
+    # widget itself, not discoverable only by debugging.
+    html = html.replace("__BUILT__", datetime.now().strftime("%H:%M"))
+    out.write_text(html)
     return out
 
 

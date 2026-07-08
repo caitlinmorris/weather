@@ -17,12 +17,32 @@ import threading
 import webview
 
 from presence.pipeline import watch
-from presence.render.build_page import OUT
+from presence.render.build_page import OUT, build
+
+
+def bootstrap_page() -> None:
+    """First run: build a page before opening the window. Extraction of
+    existing history may take a few minutes; if it fails (no key, no
+    transcripts yet), open with an honest empty field — the watch loop
+    fills it in as work happens."""
+    print("first run: building your page (extracting existing history — "
+          "this can take a few minutes)…")
+    from presence.pipeline import extract_all
+    from presence.pipeline.config import PUBLIC_DB
+    from presence.pipeline.store import PublicStore
+
+    try:
+        extract_all.run(verbose=True)
+    except Exception as e:
+        print(f"initial extraction skipped ({e}); starting with an empty field")
+    store = PublicStore(PUBLIC_DB)
+    build(store, allow_empty=True)
+    store.close()
 
 
 def main() -> None:
     if not OUT.exists():
-        raise SystemExit("no ambient.html yet — run extract_all + build_page once first")
+        bootstrap_page()
 
     worker = threading.Thread(target=watch.main, daemon=True)
     worker.start()

@@ -17,6 +17,8 @@ import json
 import time
 from datetime import datetime
 
+import httpx
+
 from presence.pipeline import extract_all
 from presence.pipeline.config import GROUP_CACHE, PERSON_ID, PUBLIC_DB
 from presence.pipeline.pause import is_paused
@@ -65,7 +67,18 @@ def main() -> None:
             store = PublicStore(PUBLIC_DB)
             note = ""
             if client.enabled:
-                note = " · " + sync_relay(client, store)
+                # Relay trouble must never freeze the local widget: sync has
+                # its own guard; build always runs.
+                try:
+                    note = " · " + sync_relay(client, store)
+                except httpx.HTTPStatusError as e:
+                    code = e.response.status_code
+                    hint = (" — PRESENCE_PERSON_ID doesn't match your token's"
+                            " identity; fix .env and restart"
+                            if code == 403 else "")
+                    note = f" · RELAY SYNC FAILED: HTTP {code}{hint}"
+                except Exception as e:
+                    note = f" · relay sync failed: {e}"
             build(store)
             store.close()
             if counts["extracted"] or counts["failed"] or note:

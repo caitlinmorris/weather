@@ -68,6 +68,12 @@ def test_duplicate_pushes_dedup_by_timestamp(client):
     assert len(group["per_person"][0]["states"]) == 2
 
 
+def test_whoami_returns_token_identity(client):
+    assert client.get("/whoami", headers=auth(TOK_A)).json() == {"person_id": "alice"}
+    assert client.get("/whoami", headers=auth(TOK_B)).json() == {"person_id": "bob"}
+    assert client.get("/whoami", headers=auth("guess")).status_code == 401
+
+
 def test_push_and_group_roundtrip(client):
     assert client.post("/state", json=wire(), headers=auth(TOK_A)).status_code == 204
     group = client.get("/group", headers=auth(TOK_B)).json()

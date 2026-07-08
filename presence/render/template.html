@@ -205,6 +205,7 @@ spans.forEach(([a, b], i) => {
   const sceneSeconds = Math.min(4, 2 + ((b - a) / 36e5) * 0.8);
   pieces.push({ ra: a, rb: b, pa: playClock, pb: playClock += sceneSeconds });
 });
+if (!pieces.length) pieces.push({ ra: 0, rb: 1, pa: 0, pb: playClock = 1 });
 const PLAY_TOTAL = playClock;
 
 const toReal = ps => {
@@ -230,8 +231,13 @@ let playing = false, lastFrame = 0, mouse = { x: -1, y: -1 };
 if (LIVE) {
   document.body.classList.add("live");
   document.getElementById("caption").textContent =
-    "live · data refreshes ~2 min · field spans 4h";
-  setInterval(() => location.reload(), 120e3);
+    "live · page built __BUILT__ · field spans 4h";
+  // Cache-busted reload: WKWebView serves cached file:// content on plain
+  // location.reload(), so the widget would silently freeze at launch-time
+  // data. A fresh query string forces a disk read every cycle.
+  setInterval(() => {
+    location.replace(location.pathname + "?v=" + Date.now() + location.hash);
+  }, 120e3);
 } else {
   document.getElementById("caption").textContent =
     "replay: sessions play as short scenes, gaps compressed";

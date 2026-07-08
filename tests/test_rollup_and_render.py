@@ -69,6 +69,17 @@ def test_publish_history_writes_one_state_per_observation(tmp_path):
     private.close(), public.close()
 
 
+def test_empty_store_builds_placeholder_only_when_allowed(tmp_path):
+    import pytest as _pytest
+
+    empty = PublicStore(tmp_path / "empty.db")
+    with _pytest.raises(SystemExit):
+        build(empty, out=tmp_path / "a.html", allow_cache=False)
+    out = build(empty, out=tmp_path / "a.html", allow_cache=False, allow_empty=True)
+    assert "const DATA = []" in out.read_text()
+    empty.close()
+
+
 def test_built_page_contains_only_published_fields(tmp_path):
     private = PrivateStore(tmp_path / "private.db")
     private.add(_obs(0))
