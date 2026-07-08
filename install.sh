@@ -30,6 +30,8 @@ if [ -f .env ]; then
   echo "then RESTART the we.ather app — settings are read at launch.)"
 else
   echo
+  echo "Your short name must EXACTLY match the name your relay token was"
+  echo "registered under (ask the study owner if unsure)."
   read -r -p "your short name (lowercase, e.g. dan): " PERSON
   read -r -p "Anthropic API key (starts sk-ant-, from the study owner): " APIKEY
   read -r -p "relay URL (https://..., or leave empty for local-only): " RELAYURL
