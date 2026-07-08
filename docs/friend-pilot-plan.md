@@ -48,7 +48,7 @@ Fly account + `fly launch` + token secrets). Verified end-to-end against a
 live local relay: two people over the wire, page rendered from the relay's
 group view, revocation purging within one fetch.
 
-**Update 2026-07-10:** item 4 built — config is now .env-driven (identity,
+**Update 2026-07-08:** item 4 built — config is now .env-driven (identity,
 group mode, allowlist), `install.sh` (interactive, with allowlist picker as
 the consent-layer-(a) step), `pause`/`resume`/`status` consent switch wired
 into the watch loop, `migrate_identity` for the projects→person flip,

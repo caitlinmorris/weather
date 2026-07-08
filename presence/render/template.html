@@ -163,10 +163,15 @@ let theme = prefs.getItem("presence.theme") === "light" ? "light" : "dark";
 let showKey = prefs.getItem("presence.key") === "1";
 let view = VIEWS.includes(prefs.getItem("presence.view")) ? prefs.getItem("presence.view") : "field";
 
-DATA.forEach(p => p.states.forEach(s => {
-  s.ms = Date.parse(s.t);
-  if (s.phase === "writing_up") s.phase = "writing";  // legacy pre-v3 value
-}));
+DATA.forEach(p => {
+  p.states.forEach(s => {
+    s.ms = Date.parse(s.t);
+    if (s.phase === "writing_up") s.phase = "writing";  // legacy pre-v3 value
+  });
+  // Relay rings arrive in push order, not time order; stateAt() and
+  // fresh-event marking both require chronology.
+  p.states.sort((a, b) => a.ms - b.ms);
+});
 DATA.sort((a, b) => a.person.localeCompare(b.person));
 
 // Fresh-event marking: first activity, return after a gap, or topic change.

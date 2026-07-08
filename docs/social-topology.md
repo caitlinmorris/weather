@@ -1,6 +1,6 @@
 # Social Topology — Boards, Invites, and Coexisting Rooms
 
-*Written 2026-07-09, before any second participant is onboarded, because these
+*Written 2026-07-08, before any second participant is onboarded, because these
 decisions set the tool's social physics and are hard to retrofit. Design
 principles doc governs; this extends it to the multi-person social layer.*
 
@@ -151,17 +151,66 @@ Boards should feel like studios, not group chats — you inhabit a few, you
 don't spawn one per topic. If board management ever needs its own UI screen,
 the tone has already been lost. Two or three boards is the imagined normal.
 
-## 6. Open questions (parked deliberately)
+## 6. Decision docket (expanded 2026-07-08 — these are now live, because
+## board #2 will be the residency)
 
-1. Overlapping membership: if dan and I share two boards, does he render
-   once (deduped) or per-room in my composite? Leaning: dedup to the
-   highest-tier instance; revisit with real overlap.
-2. Composite weather line: per-board lines stacked, rotating, or none?
-3. Does the *relay* multiplex boards (board-scoped tokens on one app) or is
-   a board just… its own tiny relay? One-relay-per-board is radically
-   simpler operationally (it's ~free) and makes boards structurally
-   incapable of leaking into each other. Genuinely tempting; decide when
-   board #2 exists.
-4. Whether "invite open" should show before or only after the invitee's
-   first acceptance step (pre-visibility is stricter; may be socially
-   awkward). Try strict first.
+Each entry: the question, the options, current leaning, and what forces a
+decision. Decisions are Caitlin's; per CLAUDE.md, genuinely close calls get
+a memo in docs/decisions/ rather than a coin flip. Builds follow decisions.
+
+### D1. One relay per board, or boards multiplexed on one relay?
+- **Per-board relay**: each board is its own tiny Fly app (~$3/mo). Boards
+  become *structurally incapable* of leaking into each other — isolation by
+  deployment, not by code paths. Secrets stay one flat token list per app.
+  Composite client just polls N URLs. Cost: minting a board = a deploy
+  (befits "boards are heavy"); friction grows linearly with board count.
+- **Multiplexed**: board-scoped tokens, board ids in every route, shared
+  process. One deploy, easier ops at N boards — and one bug away from
+  cross-board leakage; the isolation argument has to be re-won in code
+  review forever.
+- **Leaning: per-board, at the 2–3 board scale that actually matters.**
+  The heaviness is a feature (see §5 soft guidance).
+- **Forced by:** creating the residency board — first thing Phase C needs.
+
+### D2. Invite redemption (`POST /join`)
+- Mechanics settled in §3 (single-use code carries identity; joiner's
+  machine generates its token, sends only the hash; member list returned
+  for the pre-acceptance consent screen; nobody types a name).
+- Open sub-decisions: (a) who mints invites — any member or board creator
+  only? Leaning: creator-only for the residency board (it's hosted), any-
+  member for friend boards later; make it a per-board setting, default
+  creator-only. (b) Invite visibility timing — strict pre-visibility
+  ("invite open for maya" before she accepts) per the audience-loud rule;
+  try strict, watch for social awkwardness.
+- **Forced by:** onboarding more than ~2 more people; the manual token
+  dance and name-match scaffolding don't survive a cohort evening.
+
+### D3. Composite view rendering (one widget, several boards)
+- Blend all boards into one field with hover provenance ("via studio
+  board"), vs. subtle per-board lanes/regions (weather-map "fronts").
+  Blending is calmer; regions answer "which room is this from?" at a
+  glance. Prototype both behind the view-toggle pattern — instrument,
+  don't adjudicate (this worked for field-vs-dots).
+- Overlap dedup: someone sharing two boards with you renders once, at the
+  highest tier you're entitled to see. Weather lines stay per-board or
+  drop out in composite — never computed across boards (§5, load-bearing).
+- **Forced by:** Caitlin being in two boards, i.e. the day the residency
+  board exists alongside Daniel's.
+
+### D4. Per-board tiers (the dial grows an audience axis)
+- Sharing level set per board: e.g. topic+ on the friend board,
+  presence-only or topic on the residency board. Pipeline: tier filtering
+  at push time per board (client `to_wire(state, tier)` + server per-board
+  whitelist — the existing both-halves pattern).
+- The launch decision hiding here: **what default tier does a semi-trusted
+  cohort board get?** Leaning: topic (micro-gists visible on hover, no
+  names in the field regardless) — but this is exactly the kind of call to
+  put to the residency members themselves at onboarding.
+- **Forced by:** the residency board's creation; its default tier is part
+  of the consent conversation, not a config afterthought.
+
+### D5. Parked (unforced)
+- Board size cap enforcement: stays social/soft; no code.
+- Renames/display-name edits: after D2 ships.
+- Packaging (pipx / installers): only if a real participant stumbles on
+  install friction.

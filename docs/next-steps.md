@@ -48,6 +48,43 @@ sloppy) on real sessions → collect examples for a Fable failure-analysis pass.
 
 ---
 
+## Re-sequencing (2026-07-08) — the road to the residency cohort
+
+Reality since this plan was written: Stage 6 landed early (relay live at
+we-ather-relay.fly.dev; N=2 pilot with Daniel starting), the field view
+replaced dots, and the topology doc exists. The question "is a more
+shareable version next?" was answered **no**: install ergonomics are not
+the bottleneck; trust-grade extraction and board topology are. Sequence:
+
+**Phase A — now, ~1–2 weeks (Caitlin's irreplaceable work):**
+- Run the N=2 pilot and bank its lessons (bugs, glance-outcome pings,
+  bad-gist screenshots) before scaling.
+- **Stage 2 eval, promoted to safety gate.** Waived consciously for one
+  trusted friend; cannot be waived for a cohort — an over-sharing gist has
+  real social cost with semi-colleagues, and discretion must become a
+  measured category, not an instruction. Hand-labeling ~25–30 sessions IS
+  the person-state deep dive; expect it to expose schema weaknesses
+  (predictions on record: stance is mushier than it looks; openness is
+  mostly noise).
+- Stage 1 core rewrite interleaves as the learning track.
+- **Residency design feedback WITHOUT onboarding**: talk + replay demo +
+  the live widget. Separate "get feedback" from "get users" — the first is
+  available this week.
+
+**Phase B — parallel/next (delegatable to Opus once decisions are made):**
+- The social plumbing from docs/social-topology.md §6 (now a decision
+  docket): board topology, invite redemption, composite view, per-board
+  tiers. Decisions are Caitlin's, made in the docket; the builds are
+  written specs after that.
+- Explicitly parked: packaging (pipx, one-line installers, .app). Revisit
+  only if install friction is what an actual participant stumbles on.
+
+**Phase C — cohort onboarding (~2–3 weeks out):** lands on the original
+week-7 pilot timing, but with a measured extractor, an invite flow that
+deletes the manual token dance, and a board topology that respects the
+partner/builders/colleagues reality. Gates: eval numbers exist; N=2 ran
+≥1 week; the residency board's default tier is a deliberate decision.
+
 ## Stage 0 — Live with it (now → ~3 days). No building.
 
 Run `python -m presence.render.app` daily. Watch your own status while working.

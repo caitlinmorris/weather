@@ -3,7 +3,7 @@
 *v2 (2026-07-06): leads with the higher-level why, opens the design space
 (connection / coordination / companionship + the glance-outcome spectrum)
 before taking a stance, adds the commit-stream contrast (artifact trails
-inflating as AI writes the artifacts). v3 (2026-07-10): the design decisions
+inflating as AI writes the artifacts). v3 (2026-07-08): the design decisions
 became content. Slide 4 now carries the lived dot→weather pivot (surveillance
 grammar, discovered by self-dogfooding, demoed via the view toggle); slide 5
 generalizes it — "form is policy" — folding the privacy inversion together
