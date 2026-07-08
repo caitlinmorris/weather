@@ -91,6 +91,7 @@
   <div id="topbar">
     <span class="title">we.ather</span>
     <span class="controls">
+      <button id="view" title="field: anonymous weather · dots: per-person"></button>
       <button id="key" title="toggle color key">key</button>
       <button id="theme" title="light / dark">◐</button>
       <button id="level" title="how much 'what' a hover reveals"></button>
@@ -112,16 +113,22 @@
 const DATA = __DATA__;
 
 const LIVE = location.hash === "#live";
-const HALF_LIFE_H = LIVE ? 3 : 48;
+const HALF_LIFE_H = LIVE ? 3 : 48;      // dots-view decay
 const ACTIVE_H = LIVE ? 0.75 : 2;
 const GAP_SECONDS = 0.8;
 const SESSION_PRE_MS = 40 * 60e3, SESSION_POST_MS = 10 * 60e3;
 
-// Phase hues per theme: the light set is darkened so dots read on a pale
-// panel without extra glow.
+// Field view: right edge = now; the window drifts left one cell at a time.
+// 4h across ~74 cells = one cell every ~3 min: near-realtime texture.
+const FIELD_WINDOW_H = 4;
+const CELL = 5;
+const EVENT_FRESH_H = 0.5; // outlined "new event" blocks dissolve after this
+const NEW_EVENT_GAP_H = 4; // activity after this gap counts as a fresh event
+const NOISE_DENSITY = 0.07;
+
 const THEMES = {
   dark: {
-    label: "#7a8496",
+    label: "#7a8496", outline: "#dde3ec", noise: "#8b93a3",
     hues: {
       exploring: "#a78bfa", shaping: "#67e8f9", building: "#6ee7a0",
       debugging: "#fbbf24", polishing: "#f9a8d4", writing_up: "#93c5fd",
@@ -129,7 +136,7 @@ const THEMES = {
     },
   },
   light: {
-    label: "#77818f",
+    label: "#77818f", outline: "#1f2733", noise: "#6b7280",
     hues: {
       exploring: "#7c5cd6", shaping: "#0e94ad", building: "#1f9d5a",
       debugging: "#b7791f", polishing: "#d6588e", writing_up: "#3b82d4",
@@ -139,22 +146,36 @@ const THEMES = {
 };
 
 const LEVELS = [
-  { key: "presence", micro: false, tags: false, gist: false },
-  { key: "topic", micro: true, tags: false, gist: false },
-  { key: "topic+", micro: true, tags: true, gist: true },
+  { key: "presence", micro: false, tags: false, gist: false, name: false },
+  { key: "topic", micro: true, tags: false, gist: false, name: false },
+  { key: "topic+", micro: true, tags: true, gist: true, name: true },
 ];
+const VIEWS = ["field", "dots"];
 
-// UI prefs persist across the live page's 2-minute self-reloads.
 const prefs = window.localStorage;
 let level = Math.min(+(prefs.getItem("presence.level") ?? 1), LEVELS.length - 1);
 let theme = prefs.getItem("presence.theme") === "light" ? "light" : "dark";
 let showKey = prefs.getItem("presence.key") === "1";
+let view = VIEWS.includes(prefs.getItem("presence.view")) ? prefs.getItem("presence.view") : "field";
 
 DATA.forEach(p => p.states.forEach(s => s.ms = Date.parse(s.t)));
 DATA.sort((a, b) => a.person.localeCompare(b.person));
 
+// Fresh-event marking: first activity, return after a gap, or topic change.
+DATA.forEach(p => {
+  let prev = null;
+  for (const s of p.states) {
+    s.person = p.person;
+    s.fresh = !prev
+      || (s.ms - prev.ms) > NEW_EVENT_GAP_H * 36e5
+      || (s.tags[0] || "") !== (prev.tags[0] || "");
+    prev = s;
+  }
+});
+const ALL_STATES = DATA.flatMap(p => p.states).sort((a, b) => a.ms - b.ms);
+
 // --- activity-warped time (replay mode only) ------------------------------------
-const raw = DATA.flatMap(p => p.states.map(s => [s.ms - SESSION_PRE_MS, s.ms + SESSION_POST_MS]))
+const raw = ALL_STATES.map(s => [s.ms - SESSION_PRE_MS, s.ms + SESSION_POST_MS])
   .sort((a, b) => a[0] - b[0]);
 const spans = [];
 for (const [a, b] of raw) {
@@ -190,16 +211,17 @@ const scrub = document.getElementById("scrub"), clock = document.getElementById(
 const playBtn = document.getElementById("play"), tip = document.getElementById("tip");
 const levelBtn = document.getElementById("level"), themeBtn = document.getElementById("theme");
 const keyBtn = document.getElementById("key"), keyRow = document.getElementById("keyrow");
+const viewBtn = document.getElementById("view");
 let playing = false, lastFrame = 0, mouse = { x: -1, y: -1 };
 
 if (LIVE) {
   document.body.classList.add("live");
   document.getElementById("caption").textContent =
-    "live · data refreshes ~2 min · staleness half-life 3h";
+    "live · data refreshes ~2 min · field spans 4h, now at right edge";
   setInterval(() => location.reload(), 120e3);
 } else {
   document.getElementById("caption").textContent =
-    "replay: sessions play as short scenes, gaps compressed · live display would sit near-static";
+    "replay: sessions play as short scenes, gaps compressed";
 }
 
 function resize() {
@@ -209,8 +231,7 @@ function resize() {
 }
 addEventListener("resize", resize); resize();
 
-document.getElementById("ticks").innerHTML = DATA
-  .flatMap(p => p.states)
+document.getElementById("ticks").innerHTML = ALL_STATES
   .map(s => `<div class="tick" style="left:${(toPlay(s.ms) / PLAY_TOTAL * 100).toFixed(2)}%"></div>`)
   .join("");
 
@@ -219,6 +240,17 @@ function hash(str) {
   for (const ch of str) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
   return (h >>> 0) / 4294967295;
 }
+// Deterministic PRNG so the field texture is identical across the live
+// page's 2-minute self-reloads — the weather must not re-roll itself.
+function mulberry32(seed) {
+  let a = Math.floor(seed * 4294967296);
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 function stateAt(p, t) {
   let cur = null;
@@ -226,30 +258,91 @@ function stateAt(p, t) {
   return cur;
 }
 
+const microOf = s => s.micro || (s.tags[0] ? s.tags[0] : "");
+const scrubT = () => LIVE ? Date.now() : toReal((+scrub.value / 1000) * PLAY_TOTAL);
+
+let weatherCache = "";
+let hoverBlocks = [];   // field view hit targets, rebuilt each frame
+
+// --- field view -------------------------------------------------------------------
+function drawFieldView(t, now) {
+  const T = THEMES[theme];
+  const W = field.clientWidth, H = field.clientHeight;
+  const cols = Math.floor(W / CELL), rows = Math.floor(H / CELL);
+  const slotMs = (FIELD_WINDOW_H * 36e5) / cols;
+  hoverBlocks = [];
+
+  // Ambient noise: keyed to ABSOLUTE time buckets so texture scrolls with
+  // the window instead of re-rolling. Dim, neutral, sparse.
+  ctx.fillStyle = T.noise;
+  for (let c = 0; c < cols; c++) {
+    const bucket = Math.floor((t - (cols - 1 - c) * slotMs) / slotMs);
+    for (let r = 0; r < rows; r++) {
+      const rnd = mulberry32(hash(`n${bucket}·${r}`))();
+      if (rnd < NOISE_DENSITY) {
+        ctx.globalAlpha = 0.05 + 0.05 * rnd / NOISE_DENSITY;
+        ctx.fillRect(c * CELL, r * CELL, CELL - 1, CELL - 1);
+      }
+    }
+  }
+
+  // Activity blobs: column = when, lane = topic (recurring work recurs at
+  // the same height), hue = phase. No identity anywhere at this layer.
+  for (const s of ALL_STATES) {
+    const ageH = (t - s.ms) / 36e5;
+    if (ageH < 0 || ageH > FIELD_WINDOW_H) continue;
+    const col = cols - 1 - Math.floor((ageH / FIELD_WINDOW_H) * cols);
+    const lane = 2 + Math.floor(hash(s.tags[0] || s.gist || "?") * (rows - 6));
+    const hue = T.hues[s.phase] || T.hues.unknown;
+    const fade = 0.3 + 0.7 * (1 - ageH / FIELD_WINDOW_H);
+    const rnd = mulberry32(hash(s.person + s.t));
+
+    for (let dy = -2; dy <= 2; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        const weight = 1 - (Math.abs(dx) * 0.35 + Math.abs(dy) * 0.28);
+        if (rnd() > weight) continue;
+        const c = col + dx, r = lane + dy;
+        if (c < 0 || c >= cols || r < 0 || r >= rows) continue;
+        const shimmer = 1 + 0.08 * Math.sin(now / 900 + hash(`${c},${r}`) * 40);
+        ctx.globalAlpha = Math.min(1, fade * weight * shimmer);
+        ctx.fillStyle = hue;
+        ctx.fillRect(c * CELL, r * CELL, CELL - 1, CELL - 1);
+      }
+    }
+
+    // Fresh events crystallize: a larger outlined block, the hover target.
+    // It dissolves into ordinary weather after EVENT_FRESH_H.
+    if (s.fresh && ageH <= EVENT_FRESH_H) {
+      const x = Math.min(col, cols - 2) * CELL, y = Math.min(lane, rows - 2) * CELL;
+      const size = CELL * 2 - 1;
+      ctx.globalAlpha = Math.min(1, fade + 0.15);
+      ctx.fillStyle = hue;
+      ctx.fillRect(x, y, size, size);
+      ctx.globalAlpha = 0.85;
+      ctx.strokeStyle = T.outline;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
+      hoverBlocks.push({ x, y, w: size, h: size, s });
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  const hit = hoverBlocks.find(b =>
+    mouse.x >= b.x - 2 && mouse.x <= b.x + b.w + 2 &&
+    mouse.y >= b.y - 2 && mouse.y <= b.y + b.h + 2);
+  return hit ? { s: hit.s, X: hit.x + hit.w / 2, Y: hit.y } : null;
+}
+
+// --- dots view ---------------------------------------------------------------------
 function slotX(i) {
   const w = field.clientWidth, pad = 46, n = DATA.length;
   return n === 1 ? w / 2 : pad + (i * (w - 2 * pad)) / (n - 1);
 }
 
-const microOf = s => s.micro || (s.tags[0] ? s.tags[0] : "");
-
-let weatherCache = "";
-
-function draw(now) {
-  requestAnimationFrame(draw);
-  if (playing && !LIVE) {
-    const dt = (now - lastFrame) / 1000;
-    scrub.value = Math.min(1000, +scrub.value + (dt / PLAY_TOTAL) * 1000);
-    if (+scrub.value >= 1000) togglePlay();
-  }
-  lastFrame = now;
-
+function drawDotsView(t, now) {
   const T = THEMES[theme];
-  const t = LIVE ? Date.now() : toReal((+scrub.value / 1000) * PLAY_TOTAL);
   const H = field.clientHeight, y0 = H * 0.42;
-  ctx.clearRect(0, 0, field.clientWidth, H);
-  let active = 0, recent = 0, hovered = null;
-  const phases = [];
+  let hovered = null;
 
   DATA.forEach((p, i) => {
     const s = stateAt(p, t);
@@ -263,21 +356,16 @@ function draw(now) {
     if (!s) return;
     const ageH = (t - s.ms) / 36e5;
     const glow = Math.pow(0.5, ageH / HALF_LIFE_H);
-    if (ageH < ACTIVE_H) active++; else if (ageH < 24) recent++;
-    if (ageH < 24) phases.push(s.phase);
-
     const w = now / 1000;
-    const bx = Math.sin(w * 0.45 + hash(p.person) * 9) * 2.5 * glow;
-    const by = Math.cos(w * 0.35 + hash(p.person) * 7) * 2.0 * glow;
-    const X = x + bx, Y = y0 + by;
+    const X = x + Math.sin(w * 0.45 + hash(p.person) * 9) * 2.5 * glow;
+    const Y = y0 + Math.cos(w * 0.35 + hash(p.person) * 7) * 2.0 * glow;
 
     const hue = T.hues[s.phase] || T.hues.unknown;
     const rad = 3.5 + 5.5 * glow;
-    const alpha = Math.max(glow, 0.05);
     const grad = ctx.createRadialGradient(X, Y, 0, X, Y, rad * 3);
     grad.addColorStop(0, hue + "cc");
     grad.addColorStop(1, hue + "00");
-    ctx.globalAlpha = alpha;
+    ctx.globalAlpha = Math.max(glow, 0.05);
     ctx.fillStyle = grad;
     ctx.beginPath(); ctx.arc(X, Y, rad * 3, 0, 7); ctx.fill();
     ctx.fillStyle = hue;
@@ -288,9 +376,34 @@ function draw(now) {
     }
     ctx.globalAlpha = 1;
 
-    if (Math.hypot(mouse.x - X, mouse.y - Y) < 26) hovered = { p, s, X, Y };
+    if (Math.hypot(mouse.x - X, mouse.y - Y) < 26) hovered = { s, X, Y, person: p.person };
   });
+  return hovered;
+}
 
+// --- shared frame loop ------------------------------------------------------------
+function draw(now) {
+  requestAnimationFrame(draw);
+  if (playing && !LIVE) {
+    const dt = (now - lastFrame) / 1000;
+    scrub.value = Math.min(1000, +scrub.value + (dt / PLAY_TOTAL) * 1000);
+    if (+scrub.value >= 1000) togglePlay();
+  }
+  lastFrame = now;
+
+  const t = scrubT();
+  ctx.clearRect(0, 0, field.clientWidth, field.clientHeight);
+  const hovered = view === "field" ? drawFieldView(t, now) : drawDotsView(t, now);
+
+  let active = 0, recent = 0;
+  const phases = [];
+  for (const p of DATA) {
+    const s = stateAt(p, t);
+    if (!s) continue;
+    const ageH = (t - s.ms) / 36e5;
+    if (ageH < ACTIVE_H) active++; else if (ageH < 24) recent++;
+    if (ageH < 24) phases.push(s.phase);
+  }
   let weather = active ? active + (active > 1 ? " people" : " person") + " working now"
     : recent ? recent + " seen today" : "quiet";
   const mode = majority(phases);
@@ -306,17 +419,21 @@ function draw(now) {
   }
 
   const L = LEVELS[level];
-  if (hovered) {
+  if (hovered && (L.micro || L.name || view === "dots")) {
     const box = field.getBoundingClientRect();
     tip.style.display = "block";
     tip.style.left = Math.min(box.left + hovered.X + 16, innerWidth - 296) + "px";
     tip.style.top = (box.top + hovered.Y - 10) + "px";
-    let html = '<span class="who">' + esc(hovered.p.person) + "</span>";
+    let html = "";
+    // Identity rules: dots view names its slots inherently; the field stays
+    // anonymous unless the dial is at topic+ (L.name).
+    const who = view === "dots" ? hovered.person : (L.name ? hovered.s.person : null);
+    if (who) html += '<span class="who">' + esc(who) + "</span>";
     if (L.micro && microOf(hovered.s))
-      html += ' <span class="micro">· ' + esc(microOf(hovered.s)) + "</span>";
+      html += (who ? " · " : "") + '<span class="micro">' + esc(microOf(hovered.s)) + "</span>";
     if (L.tags) html += '<div class="tags">' + esc(hovered.s.tags.join(" · ")) + "</div>";
     if (L.gist) html += '<div class="gist">' + esc(hovered.s.gist) + "</div>";
-    tip.innerHTML = html;
+    tip.innerHTML = html || '<span class="micro">recent activity</span>';
   } else tip.style.display = "none";
 }
 
@@ -335,14 +452,6 @@ field.onmousemove = e => {
 };
 field.onmouseleave = () => { mouse = { x: -1, y: -1 }; };
 
-function renderKey() {
-  keyRow.innerHTML = Object.entries(THEMES[theme].hues)
-    .filter(([k]) => k !== "unknown")
-    .map(([k, v]) => '<i style="color:' + v + '">●</i> ' + k.replace("_", " "))
-    .join(" &nbsp; ");
-  keyRow.classList.toggle("show", showKey);
-}
-
 function setLevel(n) {
   level = n;
   levelBtn.textContent = "signal: " + LEVELS[n].key;
@@ -351,11 +460,26 @@ function setLevel(n) {
 levelBtn.onclick = () => setLevel((level + 1) % LEVELS.length);
 setLevel(level);
 
+function setView(name) {
+  view = name;
+  viewBtn.textContent = "view: " + name;
+  prefs.setItem("presence.view", name);
+}
+viewBtn.onclick = () => setView(view === "field" ? "dots" : "field");
+setView(view);
+
 function setTheme(name) {
   theme = name;
   document.body.classList.toggle("light", theme === "light");
   prefs.setItem("presence.theme", theme);
   renderKey();
+}
+function renderKey() {
+  keyRow.innerHTML = Object.entries(THEMES[theme].hues)
+    .filter(([k]) => k !== "unknown")
+    .map(([k, v]) => '<i style="color:' + v + '">●</i> ' + k.replace("_", " "))
+    .join(" &nbsp; ");
+  keyRow.classList.toggle("show", showKey);
 }
 themeBtn.onclick = () => setTheme(theme === "dark" ? "light" : "dark");
 setTheme(theme);
