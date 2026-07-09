@@ -68,6 +68,15 @@ def test_duplicate_pushes_dedup_by_timestamp(client):
     assert len(group["per_person"][0]["states"]) == 2
 
 
+def test_last_active_heartbeat_optional_and_accepted(client):
+    # Pre-fast-path clients omit it; new clients send it. Both valid.
+    assert client.post("/state", json=wire(), headers=auth(TOK_A)).status_code == 204
+    beat = wire(last_active="2026-07-08T22:00:00+00:00")
+    assert client.post("/state", json=beat, headers=auth(TOK_A)).status_code == 204
+    states = client.get("/group", headers=auth(TOK_B)).json()["per_person"][0]["states"]
+    assert states[-1]["last_active"].startswith("2026-07-08T22:00")
+
+
 def test_whoami_returns_token_identity(client):
     assert client.get("/whoami", headers=auth(TOK_A)).json() == {"person_id": "alice"}
     assert client.get("/whoami", headers=auth(TOK_B)).json() == {"person_id": "bob"}

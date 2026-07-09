@@ -54,6 +54,8 @@ class WireState(BaseModel):
     phase: Phase = Phase.UNKNOWN
     openness: Openness = Openness.UNKNOWN
     staleness_hours: float = Field(0.0, ge=0)
+    # Optional so pre-fast-path clients remain valid; timestamps only.
+    last_active: datetime | None = None
 
 
 def create_app(token_hashes: dict[str, str] | None = None) -> FastAPI:

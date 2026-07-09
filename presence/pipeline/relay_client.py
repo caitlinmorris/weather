@@ -31,6 +31,7 @@ def to_wire(state: PersonState) -> dict:
         "phase": state.phase.value,
         "openness": state.openness.value,
         "staleness_hours": state.staleness_hours,
+        "last_active": state.last_active.isoformat() if state.last_active else None,
     }
 
 

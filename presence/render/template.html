@@ -171,6 +171,9 @@ DATA.forEach(p => {
   // Relay rings arrive in push order, not time order; stateAt() and
   // fresh-event marking both require chronology.
   p.states.sort((a, b) => a.ms - b.ms);
+  // Fast-path presence: newest heartbeat across states (timestamps only).
+  p.aliveMs = Math.max(...p.states.map(s =>
+    s.last_active ? Date.parse(s.last_active) : s.ms));
 });
 DATA.sort((a, b) => a.person.localeCompare(b.person));
 
@@ -242,7 +245,7 @@ if (LIVE) {
   // data. A fresh query string forces a disk read every cycle.
   setInterval(() => {
     location.replace(location.pathname + "?v=" + Date.now() + location.hash);
-  }, 120e3);
+  }, 60e3);
 } else {
   document.getElementById("caption").textContent =
     "replay: sessions play as short scenes, gaps compressed";
@@ -378,7 +381,8 @@ function drawDotsView(t, now) {
     ctx.fillText(p.person.toLowerCase(), x, H - 6);
 
     if (!s) return;
-    const ageH = (t - s.ms) / 36e5;
+    const aliveMs = LIVE ? Math.max(s.ms, p.aliveMs || 0) : s.ms;
+    const ageH = (t - aliveMs) / 36e5;
     const glow = Math.pow(0.5, ageH / HALF_LIFE_H);
     const w = now / 1000;
     const X = x + Math.sin(w * 0.45 + hash(p.person) * 9) * 2.5 * glow;
@@ -424,7 +428,11 @@ function draw(now) {
   for (const p of DATA) {
     const s = stateAt(p, t);
     if (!s) continue;
-    const ageH = (t - s.ms) / 36e5;
+    // Live aliveness uses the heartbeat (last transcript activity), which
+    // leads extraction by several minutes; replay scrubbing stays on state
+    // time so history isn't contaminated by a present-day heartbeat.
+    const aliveMs = LIVE ? Math.max(s.ms, p.aliveMs || 0) : s.ms;
+    const ageH = (t - aliveMs) / 36e5;
     if (ageH < ACTIVE_H) active++; else if (ageH < 24) recent++;
     if (ageH < 24) phases.push(s.phase);
   }

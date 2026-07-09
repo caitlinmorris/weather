@@ -149,6 +149,10 @@ class PersonState(BaseModel):
     # (a candidate event + rationale) ever surface, at T3.
     trajectory: list[TrajectoryPoint] = Field(default_factory=list)
     staleness_hours: float = 0.0
+    # Fast-path presence: newest transcript activity, from timestamps only
+    # (never content) per the spec. Set client-side at push time; lets the
+    # display show aliveness without waiting for semantic extraction.
+    last_active: datetime | None = None
 
 
 # Default visibility tier per published field (spec §tiers). Individuals may opt
@@ -164,6 +168,7 @@ FIELD_TIERS: dict[str, Tier] = {
     "momentum": Tier.T1_AGGREGATE_ONLY,  # the sensitive field; weather only
     "trajectory": Tier.T0_PRIVATE,
     "staleness_hours": Tier.T2_AMBIENT,
+    "last_active": Tier.T2_AMBIENT,  # timestamps only, same tier as presence
 }
 
 

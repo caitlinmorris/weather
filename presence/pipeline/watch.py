@@ -20,15 +20,25 @@ from datetime import datetime
 import httpx
 
 from presence.pipeline import extract_all
-from presence.pipeline.config import GROUP_CACHE, PERSON_ID, PUBLIC_DB
+from presence.pipeline.config import (
+    GROUP_CACHE,
+    PERSON_ID,
+    PUBLIC_DB,
+    allowed_transcripts,
+    env_value,
+)
 from presence.pipeline.pause import is_paused
 from presence.pipeline.relay_client import RelayClient
 from presence.pipeline.store import PublicStore
 from presence.render.build_page import build
 
-INTERVAL_SECONDS = 300
+# PRESENCE_DEBUG=1 in .env tightens the whole loop for debugging sessions
+# (extraction runs more often on grown segments — costs scale accordingly;
+# turn it off for normal ambient use).
+DEBUG_MODE = env_value("PRESENCE_DEBUG") == "1"
+INTERVAL_SECONDS = int(env_value("PRESENCE_INTERVAL_SECONDS") or (60 if DEBUG_MODE else 300))
 # Live mode wants the current session visible before it is 10 minutes old.
-LIVE_MIN_MINUTES = 5
+LIVE_MIN_MINUTES = 2 if DEBUG_MODE else 5
 
 
 BACKFILL_HOURS = 4  # match the field view's window
@@ -44,6 +54,20 @@ def sync_relay(client: RelayClient, store: PublicStore) -> str:
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=BACKFILL_HOURS)
     window = [s for s in store.history(PERSON_ID) if s.updated_at >= cutoff]
+    if not window:
+        # No recent states (quiet afternoon) still deserves a heartbeat:
+        # push the latest state, however old, so presence isn't invisible.
+        latest = store.latest(PERSON_ID)
+        window = [latest] if latest else []
+    if window:
+        # Fast-path presence heartbeat: stamp the newest state with the newest
+        # transcript activity (file mtimes — timestamps only, never content).
+        # Latest-write-wins dedup on the relay refreshes the entry in place.
+        mtimes = [f.stat().st_mtime for f in allowed_transcripts()]
+        if mtimes:
+            window[-1].last_active = datetime.fromtimestamp(
+                max(mtimes), tz=timezone.utc
+            )
     pushed = sum(1 for s in window if client.push(s))
     group = client.fetch_group()
     if group is not None:
@@ -54,7 +78,9 @@ def sync_relay(client: RelayClient, store: PublicStore) -> str:
 def main() -> None:
     client = RelayClient.from_env()
     mode = "relay " + client.url if client.enabled else "local-only"
-    print(f"we.ather watch: extracting every 5 min ({mode}) · Ctrl-C to stop")
+    if DEBUG_MODE:
+        mode += " · DEBUG"
+    print(f"we.ather watch: cycle every {INTERVAL_SECONDS}s ({mode}) · Ctrl-C to stop")
     while True:
         stamp = f"[{datetime.now():%H:%M}]"
         if is_paused():

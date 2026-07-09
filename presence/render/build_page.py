@@ -37,6 +37,7 @@ def group_cache_data() -> list[dict] | None:
                 "tags": s.get("topic_tags", []),
                 "phase": s.get("phase", "unknown"),
                 "openness": s.get("openness", "unknown"),
+                "last_active": s.get("last_active"),
             }
             for s in entry.get("states", [])
         ]
