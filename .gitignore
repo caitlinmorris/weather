@@ -20,3 +20,6 @@ presence/render/ambient.html
 # Local extractor-output notes contain T0 evidence strings. Never commit.
 v1-outputs-*.md
 v1_outputs*.md
+
+# Personal fork ideas — deliberately not part of this project
+fork-notes/
