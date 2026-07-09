@@ -124,7 +124,7 @@ const SESSION_PRE_MS = 40 * 60e3, SESSION_POST_MS = 10 * 60e3;
 // 4h across ~74 cells = one cell every ~3 min: near-realtime texture.
 const FIELD_WINDOW_H = 4;
 const CELL = 5;
-const EVENT_FRESH_H = 0.5; // outlined "new event" blocks dissolve after this
+const EVENT_FRESH_H = 1;   // outlined "new event" blocks dissolve after this
 const NEW_EVENT_GAP_H = 4; // activity after this gap counts as a fresh event
 const NOISE_DENSITY = 0.07;
 
@@ -298,6 +298,7 @@ function drawFieldView(t, now) {
   const cols = Math.floor(W / CELL), rows = Math.floor(H / CELL);
   const slotMs = (FIELD_WINDOW_H * 36e5) / cols;
   hoverBlocks = [];
+  const blobTargets = [];  // every blob is inspectable; events keep priority
 
   // Ambient noise: keyed to ABSOLUTE time buckets so texture scrolls with
   // the window instead of re-rolling. Dim, neutral, sparse.
@@ -337,8 +338,10 @@ function drawFieldView(t, now) {
       }
     }
 
-    // Fresh events crystallize: a larger outlined block, the hover target.
-    // It dissolves into ordinary weather after EVENT_FRESH_H.
+    blobTargets.push({ cx: col * CELL + CELL / 2, cy: lane * CELL + CELL / 2, s });
+
+    // Fresh events crystallize: a larger outlined block, the loudest hover
+    // target. It dissolves into ordinary weather after EVENT_FRESH_H.
     if (s.fresh && ageH <= EVENT_FRESH_H) {
       const x = Math.min(col, cols - 2) * CELL, y = Math.min(lane, rows - 2) * CELL;
       const size = CELL * 2 - 1;
@@ -357,7 +360,19 @@ function drawFieldView(t, now) {
   const hit = hoverBlocks.find(b =>
     mouse.x >= b.x - 2 && mouse.x <= b.x + b.w + 2 &&
     mouse.y >= b.y - 2 && mouse.y <= b.y + b.h + 2);
-  return hit ? { s: hit.s, X: hit.x + hit.w / 2, Y: hit.y } : null;
+  if (hit) return { s: hit.s, X: hit.x + hit.w / 2, Y: hit.y };
+
+  // No event block under the cursor: any blob within reach is inspectable
+  // (most recent wins when blobs overlap). Passive view stays anonymous;
+  // the dial still decides what a hover may reveal.
+  let best = null, bestD = 14;
+  for (const b of blobTargets) {
+    const d = Math.hypot(mouse.x - b.cx, mouse.y - b.cy);
+    if (d < bestD || (best && d === bestD && b.s.ms > best.s.ms)) {
+      best = b; bestD = Math.min(d, bestD);
+    }
+  }
+  return best ? { s: best.s, X: best.cx, Y: best.cy } : null;
 }
 
 // --- dots view ---------------------------------------------------------------------
