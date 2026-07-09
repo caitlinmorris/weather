@@ -12,12 +12,33 @@ correct rendering of absence.
 
 from __future__ import annotations
 
+import atexit
+import os
 import threading
 
 import webview
 
 from presence.pipeline import watch
+from presence.pipeline.config import DATA_DIR
 from presence.render.build_page import OUT, build
+
+PID_FILE = DATA_DIR / "app.pid"
+
+
+def another_instance_running() -> bool:
+    """Two apps = two watch loops = duplicate extraction. One is plenty."""
+    try:
+        pid = int(PID_FILE.read_text().strip())
+        os.kill(pid, 0)  # signal 0: existence check only
+        return True
+    except (FileNotFoundError, ValueError, ProcessLookupError, PermissionError):
+        return False
+
+
+def claim_instance() -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    PID_FILE.write_text(str(os.getpid()))
+    atexit.register(lambda: PID_FILE.unlink(missing_ok=True))
 
 
 def bootstrap_page() -> None:
@@ -41,6 +62,12 @@ def bootstrap_page() -> None:
 
 
 def main() -> None:
+    if another_instance_running():
+        print("we.ather is already running — not starting a second instance."
+              f" (If that's wrong, delete {PID_FILE} and relaunch.)")
+        return
+    claim_instance()
+
     # Quiet consent hygiene at launch: mention unreviewed project folders in
     # the terminal only — never auto-include, never ask from the widget.
     from presence.pipeline.projects import unreviewed
