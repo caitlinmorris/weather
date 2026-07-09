@@ -59,6 +59,11 @@ def sync_relay(client: RelayClient, store: PublicStore) -> str:
         # push the latest state, however old, so presence isn't invisible.
         latest = store.latest(PERSON_ID)
         window = [latest] if latest else []
+    if not window:
+        # Zero states for this identity is loud, not silent: it usually means
+        # PRESENCE_PERSON_ID changed after extraction ran under another name.
+        return (f"relay: NOTHING TO PUSH — no states exist for "
+                f"'{PERSON_ID}' (renamed? run migrate_identity, restart)")
     if window:
         # Fast-path presence heartbeat: stamp the newest state with the newest
         # transcript activity (file mtimes — timestamps only, never content).
