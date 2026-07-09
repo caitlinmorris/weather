@@ -22,11 +22,28 @@ cd <the folder that created>   # its name depends on the repo / zip
 (If macOS complains the script isn't executable after a zip transfer:
 `chmod +x install.sh` first.)
 
-The installer asks four things: your short name, the API key, the relay
-URL + token, and — the important one — **which project folders we.ather may
+The installer asks four things: your short name (**must exactly match the
+name your relay token was registered under** — the self-test's "relay
+identity" line confirms or corrects you), the API key, the relay URL +
+token, and — the important one — **which project folders we.ather may
 observe**. That list is your consent boundary; nothing outside it is ever
-read. It ends with a self-test that checks every layer without making any
-paid API calls.
+read. The self-test checks every layer without making paid API calls.
+
+The app's **first launch builds its own page**: it extracts your existing
+history first, which takes a few minutes and costs a dollar or two on the
+study key. Later launches are instant.
+
+## Checking and changing what's observed
+
+```
+python -m presence.pipeline.projects status   # safety check: what's observed
+python -m presence.pipeline.projects          # review newly appeared folders
+python -m presence.pipeline.projects all      # revisit everything, incl. past declines
+```
+
+New folders never join silently — the app just prints a one-line notice at
+launch and waits for you to review. To STOP observing a folder, remove it
+from `PRESENCE_ALLOWLIST` in `.env`. After any change, restart the app.
 
 ## Daily use
 

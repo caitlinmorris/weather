@@ -6,8 +6,12 @@ reviewed (a local "seen" ledger), and asks. Folders you decline stay quiet
 forever unless you rerun the review.
 
 Usage:
-    python -m presence.pipeline.projects          # interactive review
+    python -m presence.pipeline.projects          # review NEW folders only
+    python -m presence.pipeline.projects all      # revisit everything,
+                                                  #   including past declines
     python -m presence.pipeline.projects status   # list only, change nothing
+
+After any change: restart the we.ather app (settings load at launch).
 """
 
 from __future__ import annotations
@@ -70,7 +74,7 @@ def rewrite_allowlist(env_path: Path, prefixes: list[str]) -> None:
 
 
 def main() -> None:
-    status_only = len(sys.argv) > 1 and sys.argv[1] == "status"
+    mode = sys.argv[1] if len(sys.argv) > 1 else "new"
     dirs = all_project_dirs()
     if not dirs:
         print(f"no project folders found under {PROJECTS_ROOT}")
@@ -88,20 +92,22 @@ def main() -> None:
     for n in new:
         print(f"  [NEW]      {n}")
 
-    if status_only or not new:
-        if not new:
-            print("nothing new to review")
+    pool = new + excluded if mode == "all" else new
+    if mode == "status" or not pool:
+        if not pool:
+            print("nothing to review" + ("" if mode == "all" else
+                  " (past declines: rerun with 'all')"))
         return
 
     if not sys.stdin.isatty():
-        print(f"\n{len(new)} new folder(s); rerun interactively to review")
+        print(f"\n{len(pool)} folder(s) to review; rerun interactively")
         return
 
     prefixes = list(ALLOWED_PROJECT_PREFIXES)
     seen = load_seen()
     added = 0
-    print("\nReview new folders (y = observe it, N = leave it private):")
-    for n in new:
+    print("\nReview folders (y = observe it, N = leave it private):")
+    for n in pool:
         answer = input(f"  include {n}? [y/N] ").strip().lower()
         seen.add(n)
         if answer == "y":

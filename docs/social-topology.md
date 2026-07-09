@@ -172,7 +172,12 @@ a memo in docs/decisions/ rather than a coin flip. Builds follow decisions.
   The heaviness is a feature (see §5 soft guidance).
 - **Forced by:** creating the residency board — first thing Phase C needs.
 
-### D2. Invite redemption (`POST /join`)
+### D2. Invite redemption (`POST /join`) — EMPIRICALLY VALIDATED 2026-07-08
+
+*(The N=2 onboarding lost most of a day to identity-string failures —
+wrong-name 403s, orphaned states, a literal `<friend>` placeholder
+registered as a token identity. Every one of these is structurally
+impossible under this design. Build priority raised accordingly.)*
 - Mechanics settled in §3 (single-use code carries identity; joiner's
   machine generates its token, sends only the hash; member list returned
   for the pre-acceptance consent screen; nobody types a name).

@@ -82,6 +82,45 @@ account, and the go/no-go gates before the actual invite.
    installs nothing but the repo and a token. They can swap in their own key
    later; don't make key-creation part of onboarding friction.
 
+## MILESTONE 2026-07-08: "2 making weather" — N=2 live
+
+Achieved evening of day one of the friend pilot, after an onboarding
+debugging arc whose every failure traced to one root: **humans typing
+identity strings.** For the record and the writeup:
+
+- The installer's bootstrap wall pushed dan into a DIY install, which
+  bypassed the name-match warning → silent 403s → states orphaned under a
+  wrong name → a literal `<friend>` placeholder discovered registered as
+  his token identity. Fixed by: app self-bootstrap, `/whoami` + selftest
+  identity check, loud empty-identity and 403 messages, mktoken name
+  validation, `migrate_identity`. Topology docket D2 (invite redemption:
+  nobody ever types a name) is now empirically justified, not just argued.
+- Two other systemic finds: **whole-session re-extraction** made latency
+  and cost grow with session length (fixed: rolling delta extraction);
+  **two Fly machines** split-brained the in-memory ring (fixed: exactly one
+  machine, documented in fly.toml).
+- Presence and meaning now travel separate paths: a timestamps-only
+  heartbeat (last_active) gives ~1-cycle presence freshness; semantic
+  states keep extraction pace. End-to-end latency is stated, not implied:
+  ~5-12 min normal, ~1-3 min with PRESENCE_DEBUG=1.
+
+## Onboarding person #3 (the distilled flow, ~15 min)
+
+1. Decide their short name TOGETHER (lowercase; mktoken now rejects
+   placeholder-shaped ids). Mint: `python -m presence.relay.mktoken <name>`.
+2. Add their hash to RELAY_TOKENS (keep existing members' hashes!):
+   `fly secrets set RELAY_TOKENS='{...all members...}'` — the relay
+   restarts; the ring self-heals from everyone's next push.
+3. GitHub collaborator invite; send docs/pilot-kit.md + security-model.md
+   ahead; spend-capped API key from the pilot Console workspace.
+4. On the call: clone → `./install.sh` (allowlist picker = the consent
+   moment; let them drive) → selftest shows "token matches '<name>'" →
+   launch (first run extracts history, minutes).
+5. Verify: /health people_present increments; their lane appears. Have
+   them run pause/resume once so the exit is felt, not just described.
+6. Remind: the k≥2 anonymity of the weather line starts genuinely working
+   at N=3+ — this person makes the field more private for everyone.
+
 ## Onboarding (the call itself)
 
 - Walk the three consent layers against the actual config file, not

@@ -18,9 +18,13 @@ pushed from your laptop to the relay every few minutes while you work:
   "topic_tags": ["auth", "testing", "time-mocking"],
   "phase": "debugging",
   "openness": "heads_down",
-  "staleness_hours": 0.1
+  "staleness_hours": 0.1,
+  "last_active": "2026-07-08T14:20:00Z"
 }
 ```
+
+(`last_active` is a presence heartbeat derived from transcript file
+*timestamps* only — when your tool last wrote anything, never what.)
 
 That's the complete list. There is no message content, no file names, no
 code, no error text, no momentum/stuckness field (that tier is not currently

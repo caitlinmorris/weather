@@ -56,6 +56,15 @@ replaced dots, and the topology doc exists. The question "is a more
 shareable version next?" was answered **no**: install ergonomics are not
 the bottleneck; trust-grade extraction and board topology are. Sequence:
 
+**STATUS 2026-07-09:** N=2 live; "2 making weather" achieved 2026-07-08
+(details + lessons in friend-pilot-plan.md). Operational hardening landed
+along the way: rolling delta extraction (flat latency/cost), heartbeat
+presence, debug mode, single-relay-machine, allowlist review tooling.
+Phase A's remaining core is unchanged and now unblocked: the eval, the
+lab-notebook habit, and letting the N=2 instruments run. A 3rd *trusted
+friend* extends N=2 under the distilled flow in friend-pilot-plan.md;
+the cohort still waits for Phase C gates.
+
 **Phase A — now, ~1–2 weeks (Caitlin's irreplaceable work):**
 - Run the N=2 pilot and bank its lessons (bugs, glance-outcome pings,
   bad-gist screenshots) before scaling.
