@@ -41,6 +41,15 @@ def bootstrap_page() -> None:
 
 
 def main() -> None:
+    # Quiet consent hygiene at launch: mention unreviewed project folders in
+    # the terminal only — never auto-include, never ask from the widget.
+    from presence.pipeline.projects import unreviewed
+
+    new_dirs = unreviewed()
+    if new_dirs:
+        print(f"{len(new_dirs)} project folder(s) not in your allowlist — "
+              "review with: python -m presence.pipeline.projects")
+
     if not OUT.exists():
         bootstrap_page()
 
