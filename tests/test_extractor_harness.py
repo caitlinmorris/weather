@@ -131,6 +131,21 @@ def test_long_tool_results_are_middle_truncated():
     assert "chars omitted" in line
 
 
+def test_delta_events_limit_what_the_model_sees(tmp_path):
+    # Rolling update: with an events override, only the tail reaches the
+    # prompt — the session's earlier content must NOT be re-read.
+    seg = _segment(tmp_path)
+    delta = [e for e in seg.events
+             if e.timestamp and e.timestamp >= T0 + timedelta(minutes=48)]
+    client = FakeClient([VALID_RESPONSE])
+    obs = Extractor(client=client).extract_segment(seg, "p1", events=delta)
+    message = client.requests[0]["messages"][0]["content"]
+    assert "refactor the config loader" in message
+    assert "sorting function" not in message
+    assert obs.t_start == seg.t_start  # bounds still cover the whole segment
+    assert obs.t_end == seg.t_end
+
+
 def test_chunking_rolls_observation_forward(tmp_path):
     responses = [VALID_RESPONSE] * 3
     client = FakeClient(responses)

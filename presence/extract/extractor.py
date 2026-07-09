@@ -162,9 +162,13 @@ class Extractor:
         segment: Segment,
         person_id: str,
         previous: SessionObservation | None = None,
+        events: list[TranscriptEvent] | None = None,
     ) -> SessionObservation:
-        """Roll the observation through the segment, one bounded chunk at a time."""
-        lines = [l for l in (format_event(e) for e in segment.events) if l]
+        """Roll the observation through the segment, one bounded chunk at a
+        time. Pass `events` to extract only a delta (the rolling-update
+        design: previous observation as compressed memory + new events only —
+        never re-reading the whole session)."""
+        lines = [l for l in (format_event(e) for e in (events if events is not None else segment.events)) if l]
         obs = previous
         hints = shallow_hints(segment)
         for chunk in self._chunk(lines):

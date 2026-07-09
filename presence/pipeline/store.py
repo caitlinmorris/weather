@@ -66,6 +66,16 @@ class PrivateStore:
         ).fetchone()
         return SessionObservation.model_validate_json(row[0]) if row else None
 
+    def get_span(
+        self, person_id: str, t_start: str, t_end: str
+    ) -> SessionObservation | None:
+        row = self.conn.execute(
+            "SELECT json FROM session_observations"
+            " WHERE person_id = ? AND t_start = ? AND t_end = ?",
+            (person_id, t_start, t_end),
+        ).fetchone()
+        return SessionObservation.model_validate_json(row[0]) if row else None
+
     def spans(self) -> dict[tuple[str, str, str], str]:
         """(person_id, t_start, t_end) -> extractor_version for every stored
         observation. Batch extraction skips spans already done at the current

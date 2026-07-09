@@ -15,6 +15,7 @@ Usage: python -m presence.pipeline.extract_all
 from __future__ import annotations
 
 import sys
+from datetime import datetime
 
 from presence.core import rollup
 from presence.extract.extractor import ExtractionError, Extractor, load_api_key
@@ -50,11 +51,34 @@ def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
             if stored == (end, extractor.extractor_version):
                 counts["skipped"] += 1
                 continue
-            if stored is not None:  # segment grew, or prompt/model changed
-                private.delete_span(person, start, stored[0])
-            previous = private.latest(person)
+
+            # Rolling update (the design's core cost property): when a
+            # segment merely GREW under the same extractor version, feed the
+            # model only the events past the previous observation plus that
+            # observation as compressed memory — never the whole session
+            # again. Full re-reads happen only on version changes.
+            delta_events = None
+            previous = None
+            if stored is not None:
+                stored_end, stored_version = stored
+                if stored_version == extractor.extractor_version:
+                    previous = private.get_span(person, start, stored_end)
+                    watermark = datetime.fromisoformat(stored_end)
+                    delta_events = [
+                        e for e in seg.events
+                        if e.timestamp and e.timestamp > watermark
+                    ]
+                    if not delta_events:
+                        counts["skipped"] += 1
+                        continue  # grew by nothing extractable; keep old obs
+                private.delete_span(person, start, stored_end)
+            if previous is None:
+                previous = private.latest(person)
+
             try:
-                obs = extractor.extract_segment(seg, person_id=person, previous=previous)
+                obs = extractor.extract_segment(
+                    seg, person_id=person, previous=previous, events=delta_events
+                )
             except (ExtractionError, ValueError) as e:
                 if verbose:
                     print(f"  FAILED {person} {seg.t_start:%Y-%m-%d %H:%M}: {e}")
