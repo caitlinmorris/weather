@@ -109,6 +109,12 @@ class PrivateStore:
         self.conn.commit()
         return total
 
+    def all_observations(self) -> list[SessionObservation]:
+        rows = self.conn.execute(
+            "SELECT json FROM session_observations ORDER BY t_end"
+        ).fetchall()
+        return [SessionObservation.model_validate_json(r[0]) for r in rows]
+
     def window(
         self, person_id: str, since: datetime
     ) -> list[SessionObservation]:

@@ -30,6 +30,20 @@ def gather_segments(min_minutes: int = MIN_MINUTES) -> list[tuple[str, Segment]]
     return pairs
 
 
+def find_segment(
+    person_id: str, t_start_iso: str, t_end_iso: str, min_minutes: int = 5
+) -> Segment | None:
+    """Locate the live segment matching a stored observation's span — the
+    sanctioned path for eval tools to reach transcript text (raw access
+    stays inside pipeline/, per the boundary tests)."""
+    for person, seg in gather_segments(min_minutes=min_minutes):
+        if (person == person_id
+                and seg.t_start.isoformat() == t_start_iso
+                and seg.t_end.isoformat() == t_end_iso):
+            return seg
+    return None
+
+
 def print_observation(person: str, seg: Segment, obs) -> None:
     print(f"\n{'=' * 70}")
     print(
