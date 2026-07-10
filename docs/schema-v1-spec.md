@@ -105,3 +105,54 @@ onto a scheme mid-molt.
 Phases 1+3 are Opus builds; 2+4 are yours and cannot be compressed by
 model access. Total: roughly a week of elapsed time at residency pace,
 and it satisfies the Phase C eval gate as a side effect.
+
+---
+
+## Appendix: running the Phase 1/2 tools (built 2026-07-10)
+
+All from the repo root. One-time sample draw (already done; rerun only to
+re-draw): `python -m presence.eval.label_tool sample 35`.
+
+**Labeling session** — `python -m presence.eval.label_tool`
+
+Per segment, in order:
+1. Header + transcript excerpt, formatted exactly as the extractor sees it
+   (same truncations; long segments cap at 150 lines with an omission
+   marker). Your own prompts are usually the fastest read.
+2. Four BLIND prompts (phase, momentum, stance, openness). Keys:
+   number = value · `u` = genuinely can't tell (a real answer — your
+   unknown-rate vs the extractor's 0% is itself a finding) · `!` =
+   wrong-shaped (no right answer exists for this field on this segment) ·
+   `s` = skip field · `q` = quit, progress saved.
+3. The reveal: extractor's answers + its gist, then the two v1.0
+   questions — gist colleague-appropriate? over-shared? (discretion
+   flag) — and a free-text note. Use notes liberally ("this was really
+   two segments", "wanted a field for X"): they are Phase 4 material.
+
+Sessions are resumable; two segments over coffee is a fine unit.
+"Segment no longer matches on disk" auto-skips — not your problem.
+Extractor answers were snapshotted at sample time, so background
+re-extraction can't contaminate the comparison. Label blind: the reveal
+is for curiosity, not calibration toward the machine.
+
+**Progress** — `python -m presence.eval.label_tool status`
+
+**Results** — `python -m presence.eval.run_eval`
+Per-field: agreement, Cohen's kappa (agreement corrected for chance — the
+honest number for lopsided fields), unknown rates both sides, top
+confusion; then confidence calibration bins and discretion/wrong-shaped
+tallies.
+
+**Extras** — `run_eval baseline` (entropy/distribution over all
+observations; no labels needed) · `run_eval consistency 10`
+(re-extracts 10 segments twice, ~20 Haiku calls: does the extractor
+agree with itself?).
+
+Labels live in `presence/eval/labels/raw/` — gitignored; notes may quote
+transcript content, so this never leaves the machine un-synthesized.
+
+**Baseline findings on record (2026-07-10, pre-labeling):** stance is a
+constant (entropy 0.00 — all 39 observations `exercising_expertise`);
+momentum 87% `flowing` (suspiciously sunny through known grinding days);
+zero abstention on any field despite the prompt rewarding `unknown`;
+phase healthy (entropy 2.09).
