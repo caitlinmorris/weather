@@ -113,7 +113,14 @@ edits core/. Then flip CLAUDE.md's division-of-labor section back to strict.
   explain tier filtering and the recency-weighted mode from memory; CLAUDE.md
   strict rule reinstated.
 
-## Stage 2 — Honest eval — ~2-3 days
+## Stage 2 — Honest eval — SUPERSEDED by docs/schema-v1-spec.md
+
+The eval grew into the schema v1.0 derivation process (same activity,
+correctly ordered): five phases, judgment/computation division explicit,
+satisfies the Phase C eval gate as a side effect. Original sketch below
+kept for the record.
+
+## Stage 2 (original) — Honest eval — ~2-3 days
 
 - Hand-label ~25-30 of your real segments (phase, momentum, stance, openness,
   gist quality y/n). Labels in `presence/eval/labels/` (synthetic-ify before
