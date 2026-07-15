@@ -65,14 +65,14 @@ def sync_relay(client: RelayClient, store: PublicStore) -> str:
         return (f"relay: NOTHING TO PUSH — no states exist for "
                 f"'{PERSON_ID}' (renamed? run migrate_identity, restart)")
     if window:
-        # Fast-path presence heartbeat: stamp the newest state with the newest
-        # transcript activity (file mtimes — timestamps only, never content).
-        # Latest-write-wins dedup on the relay refreshes the entry in place.
-        mtimes = [f.stat().st_mtime for f in allowed_transcripts()]
-        if mtimes:
-            window[-1].last_active = datetime.fromtimestamp(
-                max(mtimes), tz=timezone.utc
-            )
+        # Fast-path presence heartbeat: newest allowlist-scoped activity
+        # instant across all capture sources (timestamps only, never
+        # content). Latest-write-wins dedup refreshes the entry in place.
+        from presence.pipeline.sources import active_sources
+
+        beats = [b for s in active_sources() if (b := s.last_activity())]
+        if beats:
+            window[-1].last_active = max(beats)
     pushed = sum(1 for s in window if client.push(s))
     group = client.fetch_group()
     if group is not None:

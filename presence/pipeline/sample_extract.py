@@ -19,13 +19,12 @@ MIN_MINUTES = 10  # short segments make weak eyeball tests
 
 
 def gather_segments(min_minutes: int = MIN_MINUTES) -> list[tuple[str, Segment]]:
+    """All (person, segment) pairs across every active CaptureSource."""
+    from presence.pipeline.sources import active_sources
+
     pairs = []
-    for project in allowed_project_dirs():
-        person = person_for_project(project.name)
-        for f in sorted(project.glob("*.jsonl")):
-            for seg in segment_events(list(parse_transcript(f))):
-                if seg.duration_minutes >= min_minutes:
-                    pairs.append((person, seg))
+    for source in active_sources():
+        pairs.extend(source.segments(min_minutes))
     pairs.sort(key=lambda p: p[1].t_start, reverse=True)
     return pairs
 

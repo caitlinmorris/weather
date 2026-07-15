@@ -20,13 +20,15 @@ def test_only_rollup_opens_public_store_as_writer():
 
 
 def test_only_pipeline_reads_raw_transcripts():
-    # parse_transcript is the raw-content entry point; core/ and render/ must
-    # consume TranscriptEvent/Segment objects handed to them, never open files.
+    # Raw-content entry points (transcript parsing, source databases) live in
+    # the pipeline subtree only; core/ and render/ consume TranscriptEvent/
+    # Segment objects handed to them, never open files or databases.
     violations = []
     for py in PRESENCE.rglob("*.py"):
-        if py.parent.name == "pipeline":
+        if "pipeline" in py.parts:
             continue
         text = py.read_text()
-        if "parse_transcript" in text or ".claude/projects" in text:
+        if ("parse_transcript" in text or ".claude/projects" in text
+                or "warp.sqlite" in text):
             violations.append(str(py))
-    assert not violations, f"raw transcript access outside pipeline: {violations}"
+    assert not violations, f"raw capture access outside pipeline: {violations}"

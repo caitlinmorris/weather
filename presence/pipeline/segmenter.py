@@ -23,6 +23,7 @@ class Segment:
     t_start: datetime
     t_end: datetime
     events: list[TranscriptEvent] = field(default_factory=list)
+    origin: str = "claude_code"  # which CaptureSource produced this
 
     @property
     def duration_minutes(self) -> float:
