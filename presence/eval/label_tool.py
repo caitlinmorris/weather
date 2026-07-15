@@ -23,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from presence.core.schema import Momentum, Openness, Phase, Stance
-from presence.extract.extractor import format_event
+from presence.extract.extractor import _middle_truncate
 from presence.pipeline.config import PERSON_ID, PRIVATE_DB
 from presence.pipeline.sample_extract import find_segment
 from presence.pipeline.store import PrivateStore
@@ -103,12 +103,43 @@ def sample(n: int) -> None:
 # --- labeling ---------------------------------------------------------------------
 
 
+def _labeling_lines(events) -> list[str]:
+    """The HUMAN's view of a segment — unlike the extractor's diet, this
+    keeps only the conversation: your prompts, and assistant text that is
+    human-facing (substantial prose, or a question to you). Tool churn
+    collapses into count markers so the CADENCE stays visible (that's
+    momentum evidence) without the noise."""
+    lines: list[str] = []
+    omitted = 0
+
+    def flush() -> None:
+        nonlocal omitted
+        if omitted:
+            lines.append(f"        ⋯ {omitted} assistant/tool steps ⋯")
+            omitted = 0
+
+    for e in events:
+        stamp = f"[{e.timestamp:%H:%M}]" if e.timestamp else "[--:--]"
+        if e.is_human_prompt:
+            flush()
+            lines.append("")
+            lines.append(f"{stamp} YOU: {_middle_truncate(e.text, 2000)}")
+        elif (e.type == "assistant" and e.text
+              and (len(e.text) >= 200 or "?" in e.text[-300:])):
+            flush()
+            lines.append(f"{stamp} ASSISTANT: {_middle_truncate(e.text, 1200)}")
+        elif not e.is_meta and not e.is_sidechain and e.type in ("user", "assistant"):
+            omitted += 1
+    flush()
+    return lines
+
+
 def _show_segment(obs: dict) -> bool:
     seg = find_segment(obs["person_id"], obs["t_start"], obs["t_end"])
     if seg is None:
         print("  (segment no longer matches on disk — skipping)")
         return False
-    lines = [l for l in (format_event(e) for e in seg.events) if l]
+    lines = _labeling_lines(seg.events)
     if len(lines) > DISPLAY_LINE_CAP:
         half = DISPLAY_LINE_CAP // 2
         lines = lines[:half] + [f"  …[{len(lines) - DISPLAY_LINE_CAP} lines omitted]…"] + lines[-half:]
