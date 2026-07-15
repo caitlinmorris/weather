@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
 # we.ather — Warp structure probes (round 2, after the schema dump).
-# Everything here prints STRUCTURE and metadata only — counts, dates,
-# JSON key names, status vocabulary. No conversation content is output.
+# Prints STRUCTURE only: JSON key names, one timestamp's format, the
+# status vocabulary. No conversation content, no counts, no date ranges,
+# no model names — we ask only what parsing strictly requires.
 # Run:  bash warp-probes.sh   and send back everything it prints.
 set -euo pipefail
 
 DB="$HOME/Library/Group Containers/2BBY89MBSN.dev.warp/Library/Application Support/dev.warp.Warp-Stable/warp.sqlite"
 
-echo "== probe 1: how much history exists, and its date range =="
-sqlite3 -readonly "$DB" \
-  "SELECT 'ai_queries', COUNT(*), MIN(start_ts), MAX(start_ts) FROM ai_queries;
-   SELECT 'agent_conversations', COUNT(*) FROM agent_conversations;
-   SELECT 'commands', COUNT(*), MIN(start_ts), MAX(start_ts) FROM commands;"
-
-echo
-echo "== probe 2: shape of conversation_data (JSON key names only) =="
+echo "== probe 1: shape of conversation_data (JSON key names only) =="
 sqlite3 -readonly "$DB" \
   "SELECT conversation_data FROM agent_conversations
    ORDER BY last_modified_at DESC LIMIT 1;" | python3 -c "
@@ -34,6 +28,7 @@ def probe(x, depth=0):
 print(json.dumps(probe(d), indent=1))"
 
 echo
-echo "== probe 3: timestamp format + status/model vocabulary =="
+echo "== probe 2: timestamp format + status vocabulary =="
 sqlite3 -readonly "$DB" \
-  "SELECT start_ts, output_status, model_id FROM ai_queries LIMIT 3;"
+  "SELECT start_ts, output_status FROM ai_queries LIMIT 3;
+   SELECT DISTINCT output_status FROM ai_queries;"
