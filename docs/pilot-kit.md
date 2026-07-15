@@ -8,8 +8,17 @@ JSON that ever leaves your machine.*
 
 ## What you need
 
-- macOS, and you use **Claude Code** for real work.
+- macOS, and you do real work in **Claude Code** and/or **Warp**.
 - ~10 minutes on a call with Caitlin (she brings your API key + relay token).
+
+**Warp users, what's read:** only your typed AI prompts and command exit
+codes, from the folders you allowlist — filtered in the database query, so
+nothing outside your chosen folders is ever read at all. Warp doesn't store
+the assistant's replies locally, so we never see those; your credits/usage
+metadata is never read either. One consent point to know: excerpts of your
+own prompts are sent to the Anthropic API (under the study key) to produce
+your state — for a Warp user, that's a party that wouldn't otherwise see
+your work narration.
 
 ## Install
 

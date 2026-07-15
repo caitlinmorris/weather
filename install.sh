@@ -41,30 +41,46 @@ else
   fi
 
   echo
-  echo "Which projects may we.ather observe? (This is consent layer (a) —"
-  echo "only sessions in the folders you pick are ever read.)"
-  PROJECTS_DIR="$HOME/.claude/projects"
-  if [ ! -d "$PROJECTS_DIR" ]; then
-    echo "No Claude Code projects found at $PROJECTS_DIR — run Claude Code once first."
-    exit 1
-  fi
-  i=0; declare -a NAMES
-  for d in "$PROJECTS_DIR"/*/; do
-    name="$(basename "$d")"
-    i=$((i+1)); NAMES[$i]="$name"
-    echo "  [$i] $name"
-  done
-  read -r -p "numbers to include (space-separated, e.g. 1 3 4): " PICKS
+  read -r -p "capture sources [claude_code / warp / claude_code,warp] (default claude_code): " SOURCES
+  SOURCES=${SOURCES:-claude_code}
+
   ALLOW=""
-  for n in $PICKS; do
-    ALLOW="${ALLOW:+$ALLOW,}${NAMES[$n]}"
-  done
+  if [[ "$SOURCES" == *claude_code* ]]; then
+    echo
+    echo "Which Claude Code projects may we.ather observe? (Consent layer (a) —"
+    echo "only sessions in the folders you pick are ever read.)"
+    PROJECTS_DIR="$HOME/.claude/projects"
+    if [ ! -d "$PROJECTS_DIR" ]; then
+      echo "No Claude Code projects found at $PROJECTS_DIR — run Claude Code once first."
+      exit 1
+    fi
+    i=0; declare -a NAMES
+    for d in "$PROJECTS_DIR"/*/; do
+      name="$(basename "$d")"
+      i=$((i+1)); NAMES[$i]="$name"
+      echo "  [$i] $name"
+    done
+    read -r -p "numbers to include (space-separated, e.g. 1 3 4): " PICKS
+    for n in $PICKS; do
+      ALLOW="${ALLOW:+$ALLOW,}${NAMES[$n]}"
+    done
+  fi
+
+  WARP_ALLOW=""
+  if [[ "$SOURCES" == *warp* ]]; then
+    echo
+    echo "Which folders may we.ather observe in Warp? (Absolute paths,"
+    echo "comma-separated — e.g. /Users/you/code/mapsproj,/Users/you/thesis)"
+    read -r -p "warp folders: " WARP_ALLOW
+  fi
 
   cat > .env <<EOF
 ANTHROPIC_API_KEY=$APIKEY
 PRESENCE_PERSON_ID=$PERSON
 PRESENCE_GROUP_MODE=person
+PRESENCE_SOURCES=$SOURCES
 PRESENCE_ALLOWLIST=$ALLOW
+PRESENCE_ALLOWLIST_WARP=$WARP_ALLOW
 RELAY_URL=$RELAYURL
 RELAY_TOKEN=$RELAYTOK
 EOF

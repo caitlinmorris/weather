@@ -13,7 +13,7 @@ and writes a memo to docs/decisions/ instead of coin-flipping.*
 | 3 | Phase 4 redesign sparring | Fable | before/during the redesign session |
 | 4 | Prompt v4 authoring | Fable | after Phase 4 decisions |
 | 5 | v4 migration + re-eval | Opus | after v4 prompt exists |
-| 6 | CaptureSource + tool adapter | Opus | Warp schema dump or Codex friend |
+| 6 | ~~CaptureSource + tool adapter~~ | — | DONE 2026-07-15 in-session (Warp): sources/ pkg + warp.py, 62 tests |
 | 7 | Invite redemption (D2) build | Opus | after D1+D2 decisions recorded |
 | 8 | Stage 1 Socratic review | Opus | whenever core rewrite begins |
 

@@ -177,6 +177,10 @@ class Extractor:
             raise ExtractionError("segment contained no extractable events")
         obs.t_start = segment.t_start
         obs.t_end = segment.t_end
+        try:
+            obs.source = Source(segment.origin)
+        except ValueError:
+            obs.source = Source.OTHER
         return obs
 
     # -- internals ---------------------------------------------------------------

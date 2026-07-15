@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 class Source(str, Enum):
     CLAUDE_CHAT = "claude_chat"
     CLAUDE_CODE = "claude_code"
+    WARP = "warp"
     OTHER = "other"
 
 

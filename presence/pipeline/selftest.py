@@ -35,18 +35,31 @@ def main() -> None:
     )
     report(PASS, f"group mode: {config.GROUP_MODE}")
 
-    if not config.ALLOWED_PROJECT_PREFIXES:
-        report(FAIL, "PRESENCE_ALLOWLIST is empty — no projects will be captured")
-    else:
-        transcripts = config.allowed_transcripts()
-        status = PASS if transcripts else WARN
-        report(status, f"allowlist: {len(config.ALLOWED_PROJECT_PREFIXES)} prefixes, "
-                       f"{len(transcripts)} transcript files found")
-        if transcripts:
-            newest = max(transcripts, key=lambda p: p.stat().st_mtime)
-            events = list(parse_transcript(newest))
-            report(PASS if events else FAIL,
-                   f"parsed newest transcript: {len(events)} events (structure only)")
+    requested = [n.strip() for n in
+                 (config.env_value("PRESENCE_SOURCES") or "claude_code").split(",")
+                 if n.strip()]
+    from presence.pipeline.sources import active_sources
+    active_names = [s.name for s in active_sources()]
+    for name in requested:
+        report(PASS if name in active_names else FAIL,
+               f"capture source '{name}': "
+               + ("active" if name in active_names
+                  else "configured but unavailable (tool data missing or"
+                       " its allowlist empty)"))
+
+    if "claude_code" in requested:
+        if not config.ALLOWED_PROJECT_PREFIXES:
+            report(FAIL, "PRESENCE_ALLOWLIST is empty — no projects will be captured")
+        else:
+            transcripts = config.allowed_transcripts()
+            status = PASS if transcripts else WARN
+            report(status, f"allowlist: {len(config.ALLOWED_PROJECT_PREFIXES)} prefixes, "
+                           f"{len(transcripts)} transcript files found")
+            if transcripts:
+                newest = max(transcripts, key=lambda p: p.stat().st_mtime)
+                events = list(parse_transcript(newest))
+                report(PASS if events else FAIL,
+                       f"parsed newest transcript: {len(events)} events (structure only)")
 
     report(
         PASS if config.env_value("ANTHROPIC_API_KEY") else FAIL,
