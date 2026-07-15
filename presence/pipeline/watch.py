@@ -21,11 +21,11 @@ import httpx
 
 from presence.pipeline import extract_all
 from presence.pipeline.config import (
-    GROUP_CACHE,
     PERSON_ID,
     PUBLIC_DB,
     allowed_transcripts,
     env_value,
+    group_cache_path,
 )
 from presence.pipeline.pause import is_paused
 from presence.pipeline.relay_client import RelayClient
@@ -76,13 +76,14 @@ def sync_relay(client: RelayClient, store: PublicStore) -> str:
     pushed = sum(1 for s in window if client.push(s))
     group = client.fetch_group()
     if group is not None:
-        GROUP_CACHE.write_text(json.dumps(group))
-    return f"relay: pushed={pushed} group={len((group or {}).get('per_person', []))}"
+        group_cache_path(client.name).write_text(json.dumps(group))
+    return (f"{client.name}: pushed={pushed} "
+            f"group={len((group or {}).get('per_person', []))}")
 
 
 def main() -> None:
-    client = RelayClient.from_env()
-    mode = "relay " + client.url if client.enabled else "local-only"
+    clients = [c for c in RelayClient.boards_from_env() if c.enabled]
+    mode = ("boards: " + ", ".join(c.name for c in clients)) if clients else "local-only"
     if DEBUG_MODE:
         mode += " · DEBUG"
     print(f"we.ather watch: cycle every {INTERVAL_SECONDS}s ({mode}) · Ctrl-C to stop")
@@ -96,20 +97,21 @@ def main() -> None:
         try:
             counts = extract_all.run(min_minutes=LIVE_MIN_MINUTES, verbose=False)
             store = PublicStore(PUBLIC_DB)
-            note = ""
-            if client.enabled:
-                # Relay trouble must never freeze the local widget: sync has
-                # its own guard; build always runs.
+            notes = []
+            for client in clients:
+                # Relay trouble must never freeze the local widget (or the
+                # OTHER boards): each board syncs under its own guard.
                 try:
-                    note = " · " + sync_relay(client, store)
+                    notes.append(sync_relay(client, store))
                 except httpx.HTTPStatusError as e:
                     code = e.response.status_code
                     hint = (" — PRESENCE_PERSON_ID doesn't match your token's"
                             " identity; fix .env and restart"
                             if code == 403 else "")
-                    note = f" · RELAY SYNC FAILED: HTTP {code}{hint}"
+                    notes.append(f"{client.name}: SYNC FAILED HTTP {code}{hint}")
                 except Exception as e:
-                    note = f" · relay sync failed: {e}"
+                    notes.append(f"{client.name}: sync failed: {e}")
+            note = (" · " + " | ".join(notes)) if notes else ""
             build(store)
             store.close()
             if counts["extracted"] or counts["failed"] or note:

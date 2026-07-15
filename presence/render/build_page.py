@@ -12,7 +12,7 @@ import json
 import time
 from pathlib import Path
 
-from presence.pipeline.config import GROUP_CACHE, PUBLIC_DB
+from presence.pipeline import config
 from presence.pipeline.store import PublicStore
 
 OUT = Path(__file__).parent / "ambient.html"
@@ -21,28 +21,42 @@ CACHE_FRESH_SECONDS = 15 * 60
 
 
 def group_cache_data() -> list[dict] | None:
-    """Adapt a fresh relay group cache to the page's data shape, or None."""
-    if not GROUP_CACHE.is_file():
+    """Merge every fresh per-board relay cache into the page's data shape.
+
+    The composite exists only in this viewer's eyes: states are tagged with
+    their board for hover provenance and per-board weather lines, and a
+    person appearing on multiple boards (usually the viewer) dedups by
+    timestamp. Boards' data never mixes server-side — this merge is the
+    only place they meet, and only for rendering."""
+    merged: dict[str, dict] = {}
+    fresh = False
+    for cache in sorted(config.DATA_DIR.glob("group_cache*.json")):
+        if time.time() - cache.stat().st_mtime > CACHE_FRESH_SECONDS:
+            continue  # stale board: fall back rather than lie quietly
+        fresh = True
+        board = cache.stem.replace("group_cache", "").strip("_") or "board"
+        group = json.loads(cache.read_text())
+        for entry in group.get("per_person", []):
+            person = merged.setdefault(
+                entry["person_id"], {"person": entry["person_id"], "states": {}}
+            )
+            for s in entry.get("states", []):
+                person["states"].setdefault(s["updated_at"], {
+                    "t": s["updated_at"],
+                    "gist": s.get("topic_gist", ""),
+                    "micro": s.get("topic_micro", ""),
+                    "tags": s.get("topic_tags", []),
+                    "phase": s.get("phase", "unknown"),
+                    "openness": s.get("openness", "unknown"),
+                    "last_active": s.get("last_active"),
+                    "board": board,
+                })
+    if not fresh:
         return None
-    if time.time() - GROUP_CACHE.stat().st_mtime > CACHE_FRESH_SECONDS:
-        return None  # stale cache: fall back to local rather than lie quietly
-    group = json.loads(GROUP_CACHE.read_text())
-    data = []
-    for entry in group.get("per_person", []):
-        states = [
-            {
-                "t": s["updated_at"],
-                "gist": s.get("topic_gist", ""),
-                "micro": s.get("topic_micro", ""),
-                "tags": s.get("topic_tags", []),
-                "phase": s.get("phase", "unknown"),
-                "openness": s.get("openness", "unknown"),
-                "last_active": s.get("last_active"),
-            }
-            for s in entry.get("states", [])
-        ]
-        if states:
-            data.append({"person": entry["person_id"], "states": states})
+    data = [
+        {"person": pid, "states": sorted(p["states"].values(), key=lambda s: s["t"])}
+        for pid, p in sorted(merged.items()) if p["states"]
+    ]
     return data or None
 
 
@@ -81,7 +95,7 @@ def build(
 
 
 def main() -> None:
-    store = PublicStore(PUBLIC_DB)
+    store = PublicStore(config.PUBLIC_DB)
     out = build(store)
     people = len(page_data(store))
     store.close()

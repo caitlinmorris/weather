@@ -443,10 +443,30 @@ function draw(now) {
   }
   // Weather-metaphor phrasing, deliberately not "working": activity makes
   // the shared weather rather than being monitored by it.
-  let weather = active ? active + " making weather"
-    : recent ? recent + " in the air today" : "still air";
-  const mode = majority(phases);
-  if (mode && mode !== "unknown") weather += " · mostly " + mode.replace("_", " ");
+  // Weather lines stay PER BOARD — never an aggregate across boards (the
+  // composite is viewer-side only; see social-topology.md).
+  const boardNames = [...new Set(ALL_STATES.map(s => s.board).filter(Boolean))];
+  let weather;
+  if (LIVE && boardNames.length > 1) {
+    weather = boardNames.map(bn => {
+      let a = 0, r = 0;
+      for (const p of DATA) {
+        const inBoard = p.states.filter(s => s.board === bn && s.ms <= t);
+        if (!inBoard.length) continue;
+        const latest = inBoard[inBoard.length - 1];
+        const alive = Math.max(latest.ms, p.aliveMs || 0);
+        const ageH = (t - alive) / 36e5;
+        if (ageH < ACTIVE_H) a++; else if (ageH < 24) r++;
+      }
+      return bn + ": " + (a ? a + " making weather"
+        : r ? r + " in the air today" : "still air");
+    }).join("   ·   ");
+  } else {
+    weather = active ? active + " making weather"
+      : recent ? recent + " in the air today" : "still air";
+    const mode = majority(phases);
+    if (mode && mode !== "unknown") weather += " · mostly " + mode.replace("_", " ");
+  }
   if (weather !== weatherCache) {
     document.getElementById("weather").textContent = weather;
     weatherCache = weather;
@@ -472,6 +492,10 @@ function draw(now) {
       html += (who ? " · " : "") + '<span class="micro">' + esc(microOf(hovered.s)) + "</span>";
     if (L.tags) html += '<div class="tags">' + esc(hovered.s.tags.join(" · ")) + "</div>";
     if (L.gist) html += '<div class="gist">' + esc(hovered.s.gist) + "</div>";
+    // Provenance only matters (and only renders) when boards coexist.
+    const allBoards = [...new Set(ALL_STATES.map(s => s.board).filter(Boolean))];
+    if (allBoards.length > 1 && hovered.s.board)
+      html += '<div class="tags">via ' + esc(hovered.s.board) + "</div>";
     tip.innerHTML = html || '<span class="micro">recent activity</span>';
   } else tip.style.display = "none";
 }

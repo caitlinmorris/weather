@@ -53,8 +53,42 @@ def person_for_project(project_dir_name: str) -> str:
 DATA_DIR = REPO_ROOT / "data"
 PRIVATE_DB = DATA_DIR / "private.db"
 PUBLIC_DB = DATA_DIR / "public.db"
-GROUP_CACHE = DATA_DIR / "group_cache.json"
+GROUP_CACHE = DATA_DIR / "group_cache.json"  # legacy single-board cache
 PAUSE_FLAG = DATA_DIR / "paused"
+
+
+def group_cache_path(board_name: str) -> Path:
+    return DATA_DIR / f"group_cache_{board_name}.json"
+
+
+# --- boards ---------------------------------------------------------------------
+# A board, to this client, is just (name, url, token, tier) — who HOSTS its
+# relay is a social fact, not a config field (operator disclosure lives in
+# the consent conversation, per social-topology.md). .env format:
+#   PRESENCE_BOARDS=dan,vee
+#   RELAY_URL_DAN=...   RELAY_TOKEN_DAN=...   PRESENCE_TIER_DAN=topic
+# Legacy single-board form (RELAY_URL/RELAY_TOKEN) still works, named "board".
+
+
+def boards() -> list[dict]:
+    names_raw = env_value("PRESENCE_BOARDS")
+    if names_raw:
+        out = []
+        for name in [n.strip() for n in names_raw.split(",") if n.strip()]:
+            key = name.upper().replace("-", "_")
+            board = {
+                "name": name,
+                "url": env_value(f"RELAY_URL_{key}"),
+                "token": env_value(f"RELAY_TOKEN_{key}"),
+                "tier": env_value(f"PRESENCE_TIER_{key}") or "topic",
+            }
+            if board["url"] and board["token"]:
+                out.append(board)
+        return out
+    url, token = env_value("RELAY_URL"), env_value("RELAY_TOKEN")
+    if url and token:
+        return [{"name": "board", "url": url, "token": token, "tier": "topic"}]
+    return []
 
 
 def allowed_project_dirs() -> list[Path]:

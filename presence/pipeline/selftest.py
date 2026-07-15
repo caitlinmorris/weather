@@ -74,24 +74,24 @@ def main() -> None:
     except Exception as e:
         report(FAIL, f"extraction harness: {e}")
 
-    client = RelayClient.from_env()
-    if not client.enabled:
-        report(WARN, "relay: not configured (local-only mode)")
-    else:
+    clients = [c for c in RelayClient.boards_from_env() if c.enabled]
+    if not clients:
+        report(WARN, "relay: no boards configured (local-only mode)")
+    for client in clients:
         try:
             group = client.fetch_group()
-            report(PASS, f"relay reachable + token accepted: "
-                         f"{len(group.get('per_person', []))} people present")
+            report(PASS, f"board '{client.name}' (tier {client.tier}): "
+                         f"reachable, {len(group.get('per_person', []))} present")
             who = client.whoami()
             if who == config.PERSON_ID:
-                report(PASS, f"relay identity: token matches '{who}'")
+                report(PASS, f"board '{client.name}': token matches '{who}'")
             else:
-                report(FAIL, f"identity mismatch: your token belongs to "
+                report(FAIL, f"board '{client.name}': token belongs to "
                              f"'{who}' but PRESENCE_PERSON_ID is "
                              f"'{config.PERSON_ID}' — every push will be "
                              f"rejected. Make them match in .env, restart.")
         except Exception as e:
-            report(FAIL, f"relay: {e}")
+            report(FAIL, f"board '{client.name}': {e}")
 
     report(WARN if is_paused() else PASS, "paused" if is_paused() else "consent: active")
 

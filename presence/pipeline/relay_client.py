@@ -15,13 +15,14 @@ from __future__ import annotations
 import httpx
 
 from presence.core.schema import PersonState
-from presence.pipeline.config import env_value
+from presence.pipeline.config import boards, env_value
 
 TIMEOUT = 5.0
+TIERS = ("presence", "topic")
 
 
-def to_wire(state: PersonState) -> dict:
-    return {
+def to_wire(state: PersonState, tier: str = "topic") -> dict:
+    wire = {
         "person_id": state.person_id,
         "updated_at": state.updated_at.isoformat(),
         "presence": state.presence.value,
@@ -33,16 +34,32 @@ def to_wire(state: PersonState) -> dict:
         "staleness_hours": state.staleness_hours,
         "last_active": state.last_active.isoformat() if state.last_active else None,
     }
+    if tier == "presence":
+        # Presence-only board: heartbeat and rhythm, no "what" at all.
+        wire.update(topic_gist="", topic_micro="", topic_tags=[],
+                    phase="unknown", openness="unknown")
+    return wire
 
 
 class RelayClient:
-    def __init__(self, url: str | None, token: str | None):
+    def __init__(self, url: str | None, token: str | None,
+                 name: str = "board", tier: str = "topic"):
         self.url = url.rstrip("/") if url else None
         self.token = token
+        self.name = name
+        self.tier = tier if tier in TIERS else "topic"
 
     @classmethod
     def from_env(cls) -> "RelayClient":
-        return cls(env_value("RELAY_URL"), env_value("RELAY_TOKEN"))
+        all_boards = boards()
+        if all_boards:
+            b = all_boards[0]
+            return cls(b["url"], b["token"], b["name"], b["tier"])
+        return cls(None, None)
+
+    @classmethod
+    def boards_from_env(cls) -> list["RelayClient"]:
+        return [cls(b["url"], b["token"], b["name"], b["tier"]) for b in boards()]
 
     @property
     def enabled(self) -> bool:
@@ -55,7 +72,7 @@ class RelayClient:
         if not self.enabled:
             return False
         response = httpx.post(
-            f"{self.url}/state", json=to_wire(state),
+            f"{self.url}/state", json=to_wire(state, self.tier),
             headers=self._headers(), timeout=TIMEOUT,
         )
         response.raise_for_status()

@@ -127,6 +127,9 @@ identity strings.** For the record and the writeup:
   abstractly: (a) which projects are modeled, (b) whether their state joins
   the display, (c) events — off entirely for this pilot; the watcher doesn't
   exist yet.
+- **Operator disclosure** (rule as of D1): name who hosts this room's relay
+  ("this board runs on Caitlin's server"). The operator is always a member
+  of the room, and everyone in it knows who.
 - Say the boundary contract out loud: raw chat never leaves your machine;
   what crosses is the typed state at your tier; here is the exact JSON that
   will be sent (show them a real one from the self-test).

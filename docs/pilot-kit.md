@@ -78,3 +78,11 @@ settings are read once at launch.
   over-sharing gist is *wanted data* — send it, don't be polite about it.
 - During the pilot you'll get one two-question ping per day ("did you glance?
   did it change anything?"). That's the whole measurement burden.
+
+## Who runs this room
+
+Every board (room) has a **host** — a member of the room who operates its
+relay server and pays its few dollars a month. You will always be told who
+hosts your room; the host is never someone outside it. Hosts can see what
+the relay sees (the low-resolution shared states — never your raw chats),
+plus server logs.

@@ -27,16 +27,17 @@ def is_paused() -> bool:
 def pause() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     PAUSE_FLAG.touch()
-    client = RelayClient.from_env()
-    if client.enabled:
+    clients = [c for c in RelayClient.boards_from_env() if c.enabled]
+    if not clients:
+        print("paused · local-only mode, nothing was being shared")
+        return
+    for client in clients:  # pause means pause EVERYWHERE, every board
         try:
             client.revoke(PERSON_ID)
-            print(f"paused · relay state for '{PERSON_ID}' purged; you now read as away")
+            print(f"paused on '{client.name}' · state purged; you read as away")
         except Exception as e:
-            print(f"paused locally, but relay revoke failed ({e}) — "
-                  "your last state will age out; retry when online")
-    else:
-        print("paused · local-only mode, nothing was being shared")
+            print(f"paused locally, but revoke on '{client.name}' failed ({e})"
+                  " — your last state there will age out; retry when online")
 
 
 def resume() -> None:

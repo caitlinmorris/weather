@@ -158,7 +158,21 @@ Each entry: the question, the options, current leaning, and what forces a
 decision. Decisions are Caitlin's; per CLAUDE.md, genuinely close calls get
 a memo in docs/decisions/ rather than a coin flip. Builds follow decisions.
 
-### D1. One relay per board, or boards multiplexed on one relay?
+### D1. One relay per board — DECIDED 2026-07-15 (built)
+
+**Decision:** per-board relays. The scaled model is **host-per-board**: a
+board's relay is operated by a member of that room ("the trust boundary
+tracks the social structure — no one operates a room they're not in").
+**Pilot form:** Caitlin hosts all boards on her Fly account as separate
+apps (~$2-3/mo each; participants never touch Fly — they hold only a
+token), with **operator disclosure** as a consent rule: every member is
+told who hosts their room. Board creation: `presence/relay/make_board.sh`.
+New parked item: a **free hosting kit** (Cloudflare Worker + KV port,
+~1 day) for when a second host materializes — kills cost as a barrier to
+anyone hosting, and durable KV ends restart ring-wipes. Never: shared Fly
+account credentials.
+
+*(original analysis kept below)*
 - **Per-board relay**: each board is its own tiny Fly app (~$3/mo). Boards
   become *structurally incapable* of leaking into each other — isolation by
   deployment, not by code paths. Secrets stay one flat token list per app.
@@ -190,7 +204,14 @@ impossible under this design. Build priority raised accordingly.)*
 - **Forced by:** onboarding more than ~2 more people; the manual token
   dance and name-match scaffolding don't survive a cohort evening.
 
-### D3. Composite view rendering (one widget, several boards)
+### D3. Composite view — DECIDED 2026-07-15 (built): blend + hover provenance
+
+Boards paint one field; event hovers gain "via <board>" (only when >1
+board); weather lines are strictly per-board. Bands remain a fallback if
+blend proves illegible in practice. Overlap dedup: by timestamp, viewer
+renders once.
+
+*(original analysis kept below)*
 - Blend all boards into one field with hover provenance ("via studio
   board"), vs. subtle per-board lanes/regions (weather-map "fronts").
   Blending is calmer; regions answer "which room is this from?" at a
@@ -202,7 +223,14 @@ impossible under this design. Build priority raised accordingly.)*
 - **Forced by:** Caitlin being in two boards, i.e. the day the residency
   board exists alongside Daniel's.
 
-### D4. Per-board tiers (the dial grows an audience axis)
+### D4. Per-board tiers — DECIDED 2026-07-15 (built): tier at push, per board
+
+`PRESENCE_TIER_<BOARD>` ∈ {topic, presence}; filtering client-side in
+to_wire (server whitelist unchanged as the outer bound). V's board starts
+at **topic** (same as dan's) for comparable pilot data. The V-and-husband
+scenario settled this: people obviously share differently per room.
+
+*(original analysis kept below)*
 - Sharing level set per board: e.g. topic+ on the friend board,
   presence-only or topic on the residency board. Pipeline: tier filtering
   at push time per board (client `to_wire(state, tier)` + server per-board
