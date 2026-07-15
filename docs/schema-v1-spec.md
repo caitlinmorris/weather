@@ -113,7 +113,12 @@ and it satisfies the Phase C eval gate as a side effect.
 All from the repo root. One-time sample draw (already done; rerun only to
 re-draw): `python -m presence.eval.label_tool sample 35`.
 
-**Labeling session** — `python -m presence.eval.label_tool`
+**Labeling session (web, recommended)** — `python -m presence.eval.label_web`
+opens a localhost chat-style viewer with button input: same blind→reveal
+flow, same labels.jsonl, so it's interchangeable with the terminal tool
+below. Ctrl-C the server when done.
+
+**Labeling session (terminal)** — `python -m presence.eval.label_tool`
 
 Per segment, in order:
 1. Header + transcript excerpt, formatted exactly as the extractor sees it
