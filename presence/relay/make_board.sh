@@ -4,7 +4,7 @@
 # in the room's consent conversation. See docs/social-topology.md.)
 #
 # Usage: ./presence/relay/make_board.sh <board-name> <member1> <member2> [...]
-# e.g.:  ./presence/relay/make_board.sh vee caitlin vee
+# e.g.:  ./presence/relay/make_board.sh lara caitlin lara
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 

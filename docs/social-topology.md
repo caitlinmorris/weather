@@ -226,9 +226,10 @@ renders once.
 ### D4. Per-board tiers — DECIDED 2026-07-15 (built): tier at push, per board
 
 `PRESENCE_TIER_<BOARD>` ∈ {topic, presence}; filtering client-side in
-to_wire (server whitelist unchanged as the outer bound). V's board starts
-at **topic** (same as dan's) for comparable pilot data. The V-and-husband
-scenario settled this: people obviously share differently per room.
+to_wire (server whitelist unchanged as the outer bound). Lara's board
+starts at **topic** (same as dan's) for comparable pilot data. The
+one-board-with-a-friend, another-with-a-partner scenario settled this:
+people obviously share differently per room.
 
 *(original analysis kept below)*
 - Sharing level set per board: e.g. topic+ on the friend board,

@@ -65,7 +65,7 @@ def group_cache_path(board_name: str) -> Path:
 # A board, to this client, is just (name, url, token, tier) — who HOSTS its
 # relay is a social fact, not a config field (operator disclosure lives in
 # the consent conversation, per social-topology.md). .env format:
-#   PRESENCE_BOARDS=dan,vee
+#   PRESENCE_BOARDS=dan,lara
 #   RELAY_URL_DAN=...   RELAY_TOKEN_DAN=...   PRESENCE_TIER_DAN=topic
 # Legacy single-board form (RELAY_URL/RELAY_TOKEN) still works, named "board".
 
