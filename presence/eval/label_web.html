@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>we.ather · labeling</title>
+<style>
+  :root { color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0b0e14; color: #b8c0cc;
+    font: 14px/1.55 ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  #top {
+    position: sticky; top: 0; background: rgba(11,14,20,.95); z-index: 2;
+    padding: 10px 18px; border-bottom: 1px solid #1a2030;
+    display: flex; justify-content: space-between; font-size: 12px;
+    color: #7d8798;
+  }
+  #chat { max-width: 760px; margin: 0 auto; padding: 18px 16px 380px; }
+  .msg { margin: 10px 0; display: flex; }
+  .msg .bubble {
+    max-width: 82%; padding: 9px 13px; border-radius: 10px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .you { justify-content: flex-end; }
+  .you .bubble {
+    background: #1a2438; border: 1px solid #2c3d5c; color: #d5dde9;
+  }
+  .assistant .bubble { background: #131722; border: 1px solid #1f2635; }
+  .stamp { font-size: 10px; color: #566078; margin: 0 6px 2px; }
+  .steps { text-align: center; color: #48526a; font-size: 11px; margin: 8px 0; }
+  #panel {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 3;
+    background: #0e1219; border-top: 1px solid #222a3a;
+    padding: 12px 18px 14px;
+  }
+  #panel .inner { max-width: 760px; margin: 0 auto; }
+  .fieldrow { display: flex; align-items: center; gap: 6px; margin: 5px 0; flex-wrap: wrap; }
+  .fieldrow .name { width: 90px; color: #8b95a7; font-size: 12px; }
+  button {
+    background: none; border: 1px solid #2e3648; color: #9aa4b4;
+    border-radius: 5px; padding: 3px 10px; cursor: pointer;
+    font: inherit; font-size: 12px;
+  }
+  button:hover { border-color: #47506a; color: #dde3ec; }
+  button.sel { background: #24406b; border-color: #3c66a8; color: #eaf1fb; }
+  button.warn.sel { background: #6b2438; border-color: #a83c5c; }
+  button.big { padding: 6px 18px; font-size: 13px; }
+  #reveal { display: none; }
+  .cmp { display: flex; gap: 14px; flex-wrap: wrap; margin: 6px 0; font-size: 12px; }
+  .cmp .hit { color: #6ee7a0; } .cmp .miss { color: #fbbf24; }
+  .gist { color: #c3cbd8; font-style: italic; margin: 6px 0; }
+  input[type=text] {
+    background: #131722; border: 1px solid #2e3648; border-radius: 5px;
+    color: #d5dde9; font: inherit; font-size: 12px; padding: 5px 9px;
+    width: 100%; margin-top: 6px;
+  }
+  #donebox { text-align: center; padding: 80px 20px; color: #7d8798; }
+</style>
+</head>
+<body>
+<div id="top"><span id="span"></span><span id="progress"></span></div>
+<div id="chat"></div>
+<div id="panel"><div class="inner">
+  <div id="labeling"></div>
+  <div id="reveal"></div>
+</div></div>
+<script>
+let current = null, picks = {}, wrongShaped = new Set();
+
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function load() {
+  const r = await fetch("/api/next");
+  const data = await r.json();
+  document.getElementById("progress").textContent = `${data.done}/${data.total} labeled`;
+  if (!data.obs) {
+    document.getElementById("chat").innerHTML =
+      '<div id="donebox">all labeled — run<br><b>python -m presence.eval.run_eval</b><br>for the numbers</div>';
+    document.getElementById("panel").style.display = "none";
+    return;
+  }
+  current = data; picks = {}; wrongShaped = new Set();
+  document.getElementById("span").textContent = data.obs.span;
+  renderChat(data.messages);
+  renderLabeling(data.enums);
+  document.getElementById("reveal").style.display = "none";
+  document.getElementById("labeling").style.display = "block";
+  window.scrollTo(0, 0);
+}
+
+function renderChat(messages) {
+  document.getElementById("chat").innerHTML = messages.map(m => {
+    if (m.kind === "steps")
+      return `<div class="steps">⋯ ${m.n} assistant/tool steps ⋯</div>`;
+    const side = m.kind === "you" ? "you" : "assistant";
+    return `<div class="msg ${side}"><div>` +
+      `<div class="stamp">${m.t} · ${side === "you" ? "you" : "assistant"}</div>` +
+      `<div class="bubble">${esc(m.text)}</div></div></div>`;
+  }).join("");
+}
+
+function renderLabeling(enums) {
+  const box = document.getElementById("labeling");
+  box.innerHTML = Object.entries(enums).map(([field, values]) =>
+    `<div class="fieldrow" data-field="${field}"><span class="name">${field}</span>` +
+    values.map(v => `<button data-v="${v}">${v.replace("_", " ")}</button>`).join("") +
+    `<button data-v="unknown">unknown</button>` +
+    `<button data-v="!" class="warn" title="no right answer exists">!</button></div>`
+  ).join("") +
+  `<div class="fieldrow"><span class="name"></span>` +
+  `<button class="big" id="submit" disabled>reveal extractor →</button></div>`;
+
+  box.querySelectorAll(".fieldrow[data-field] button").forEach(b => {
+    b.onclick = () => {
+      const row = b.closest(".fieldrow"), field = row.dataset.field;
+      row.querySelectorAll("button").forEach(x => x.classList.remove("sel"));
+      b.classList.add("sel");
+      if (b.dataset.v === "!") { wrongShaped.add(field); picks[field] = null; }
+      else { wrongShaped.delete(field); picks[field] = b.dataset.v; }
+      document.getElementById("submit").disabled =
+        [...box.querySelectorAll(".fieldrow[data-field]")]
+          .some(r => !r.querySelector("button.sel"));
+    };
+  });
+  document.getElementById("submit").onclick = showReveal;
+}
+
+function showReveal() {
+  document.getElementById("labeling").style.display = "none";
+  const ex = current.obs.extractor;
+  const cmp = Object.keys(ex).map(f => {
+    const mine = wrongShaped.has(f) ? "(!)" : picks[f];
+    const hit = mine === ex[f];
+    return `<span class="${hit ? "hit" : "miss"}">${f}: you=${mine} · ext=${ex[f]}</span>`;
+  }).join("");
+  const rev = document.getElementById("reveal");
+  rev.innerHTML =
+    `<div class="cmp">${cmp}</div>` +
+    `<div class="gist">gist: “${esc(current.obs.gist)}”</div>` +
+    `<div class="fieldrow"><span class="name">gist ok?</span>` +
+    `<button id="g-y">yes</button><button id="g-n" class="warn">no</button></div>` +
+    `<div class="fieldrow"><span class="name">over-shares?</span>` +
+    `<button id="o-n">no</button><button id="o-y" class="warn">yes</button></div>` +
+    `<input type="text" id="note" placeholder="note (optional — wish-list material)">` +
+    `<div class="fieldrow" style="margin-top:8px"><span class="name"></span>` +
+    `<button class="big" id="save" disabled>save & next →</button></div>`;
+  rev.style.display = "block";
+
+  const answers = {};
+  const upd = () => {
+    document.getElementById("save").disabled =
+      !("gist_ok" in answers && "overshares" in answers);
+  };
+  for (const [id, key, val] of [["g-y","gist_ok",true],["g-n","gist_ok",false],
+                                ["o-y","overshares",true],["o-n","overshares",false]]) {
+    document.getElementById(id).onclick = e => {
+      answers[key] = val;
+      e.target.parentElement.querySelectorAll("button")
+        .forEach(x => x.classList.remove("sel"));
+      e.target.classList.add("sel");
+      upd();
+    };
+  }
+  document.getElementById("save").onclick = async () => {
+    const row = {
+      observation_id: current.obs.observation_id,
+      labels: picks,
+      wrong_shaped: [...wrongShaped],
+      extractor: current.obs.extractor,
+      extractor_confidence: current.obs.confidence,
+      gist: current.obs.gist,
+      gist_ok: answers.gist_ok,
+      overshares: answers.overshares,
+    };
+    const note = document.getElementById("note").value.trim();
+    if (note) row.note = note;
+    await fetch("/api/label", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(row),
+    });
+    load();
+  };
+}
+
+load();
+</script>
+</body>
+</html>
