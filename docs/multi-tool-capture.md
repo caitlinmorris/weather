@@ -35,7 +35,7 @@ polling indefinitely. This is what makes agnosticism cheap.
 | **Claude Code** | JSONL, documented-ish, hooks available | built | canary in place |
 | **Codex CLI** | Full JSONL transcripts (prompts, tool calls, results, timestamps) at `~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl` | ~0.5–1 day — nearest analog to the existing parser | format undocumented; needs own canary |
 | **Hermes (Nous)** | SQLite `~/.hermes/state.db`, **documented schema** (sessions + messages tables: role, content, tool_calls, tool_name), open source | ~0.5 day — possibly the easiest of all | low; schema is documented |
-| **Warp** | Local SQLite (`warp.sqlite`, Group Containers path on macOS); agent conversations local-only by default | ~1–2 days — schema must be reverse-engineered | highest drift risk; closed source; behavioral channel likely thinner |
+| **Warp** | Local SQLite (`warp.sqlite`); **schema obtained 2026-07-15** (docs/warp-schema.txt): `ai_queries` has user input + start_ts + working_directory (allowlist filtering IN the SQL query — cleanest consent geometry of any tool); `commands`/`blocks` have exit codes + `is_agent_executed` (behavioral channel RICHER than Claude Code's) | **revised ~1 day** — v1 on ai_queries+commands; assistant text lives in `agent_conversations.conversation_data` (JSON blob, structure probe pending) | drift risk remains (closed source, Diesel migrations); adapter opens db read-only while Warp runs |
 | **claude.ai chat** | Batch data export | already planned (`capture_export.py`) | staleness rendered honestly |
 | **Anything else** | Fallback ladder below | — | — |
 
