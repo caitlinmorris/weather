@@ -72,7 +72,8 @@ def test_composite_merge_tags_boards_and_dedups(tmp_path, monkeypatch):
     (tmp_path / "group_cache_lara.json").write_text(json.dumps(
         {"per_person": [{"person_id": "caitlin", "states": [dict(shared)]},
                         {"person_id": "lara", "states": [dict(shared)]}]}))
-    data = build_page.group_cache_data()
+    data, boards = build_page.group_cache_data()
+    assert boards == ["dan", "lara"]
     people = {p["person"]: p for p in data}
     assert set(people) == {"caitlin", "dan", "lara"}
     # Self appears on both boards but dedups to one state by timestamp.

@@ -20,7 +20,7 @@ TEMPLATE = Path(__file__).parent / "template.html"
 CACHE_FRESH_SECONDS = 15 * 60
 
 
-def group_cache_data() -> list[dict] | None:
+def group_cache_data() -> tuple[list[dict], list[str]] | None:
     """Merge every fresh per-board relay cache into the page's data shape.
 
     The composite exists only in this viewer's eyes: states are tagged with
@@ -29,12 +29,12 @@ def group_cache_data() -> list[dict] | None:
     timestamp. Boards' data never mixes server-side — this merge is the
     only place they meet, and only for rendering."""
     merged: dict[str, dict] = {}
-    fresh = False
+    boards: list[str] = []
     for cache in sorted(config.DATA_DIR.glob("group_cache*.json")):
         if time.time() - cache.stat().st_mtime > CACHE_FRESH_SECONDS:
             continue  # stale board: fall back rather than lie quietly
-        fresh = True
         board = cache.stem.replace("group_cache", "").strip("_") or "board"
+        boards.append(board)  # an EMPTY board still exists — room, lights on
         group = json.loads(cache.read_text())
         for entry in group.get("per_person", []):
             person = merged.setdefault(
@@ -51,13 +51,13 @@ def group_cache_data() -> list[dict] | None:
                     "last_active": s.get("last_active"),
                     "board": board,
                 })
-    if not fresh:
+    if not boards:
         return None
     data = [
         {"person": pid, "states": sorted(p["states"].values(), key=lambda s: s["t"])}
         for pid, p in sorted(merged.items()) if p["states"]
     ]
-    return data or None
+    return (data, boards) if data else None
 
 
 def page_data(store: PublicStore) -> list[dict]:
@@ -85,12 +85,19 @@ def build(
     allow_cache: bool = True,
     allow_empty: bool = False,
 ) -> Path:
-    data = (group_cache_data() if allow_cache else None) or page_data(store)
+    boards: list[str] = []
+    cached = group_cache_data() if allow_cache else None
+    if cached:
+        data, boards = cached
+    else:
+        data = page_data(store)
     if not data and not allow_empty:
         raise SystemExit("public store is empty — run extract_all first")
     data = data or []  # first run: an empty, honest "still air" field
     payload = json.dumps(data).replace("</", "<\\/")
-    out.write_text(TEMPLATE.read_text().replace("__DATA__", payload))
+    html = TEMPLATE.read_text().replace("__DATA__", payload)
+    html = html.replace("__BOARDS__", json.dumps(boards))
+    out.write_text(html)
     return out
 
 

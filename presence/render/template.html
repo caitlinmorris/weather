@@ -113,6 +113,9 @@
 <div id="tip"></div>
 <script>
 const DATA = __DATA__;
+// Boards known to the build (from merged caches) — includes EMPTY boards,
+// so a room you publish into is visible even before anyone else arrives.
+const BOARDS = __BOARDS__;
 
 const LIVE = location.hash === "#live";
 const HALF_LIFE_H = LIVE ? 3 : 48;      // dots-view decay
@@ -445,7 +448,9 @@ function draw(now) {
   // the shared weather rather than being monitored by it.
   // Weather lines stay PER BOARD — never an aggregate across boards (the
   // composite is viewer-side only; see social-topology.md).
-  const boardNames = [...new Set(ALL_STATES.map(s => s.board).filter(Boolean))];
+  const boardNames = BOARDS.length
+    ? BOARDS
+    : [...new Set(ALL_STATES.map(s => s.board).filter(Boolean))];
   let weather;
   if (LIVE && boardNames.length > 1) {
     weather = boardNames.map(bn => {
