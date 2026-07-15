@@ -1,0 +1,27 @@
+# fly.toml app configuration file generated for we-ather-relay on 2026-07-08T10:24:39-04:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+# EXACTLY ONE MACHINE (`fly scale count 1`, applied 2026-07-08): the relay's
+# ring is per-machine memory, so two machines = split-brain membership
+# flapping as requests round-robin between them. State is in-memory by
+# design (docs/security-model.md); a restart self-heals via client backfill.
+# If Fly ever suggests scaling up for availability, decline.
+#
+
+app = 'we-ather-lara'
+primary_region = 'ewr'
+
+[build]
+  dockerfile = 'presence/relay/Dockerfile'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '256mb'
