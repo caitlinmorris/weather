@@ -34,9 +34,12 @@ SECRETS="${SECRETS%, }}"
 fly secrets set -a "$APP" "RELAY_TOKENS=$SECRETS" --stage
 fly deploy -c "fly.$BOARD.toml"
 
+# Exactly one machine, always: the ring is per-machine memory, and two
+# machines split-brain the board (see fly.toml header).
+fly scale count 1 -a "$APP" -y || true
+
 echo
-echo "board '$BOARD' live at https://$APP.fly.dev"
-echo "IMPORTANT: run 'fly scale count 1 -a $APP -y' if machines > 1"
+echo "board '$BOARD' live at https://$APP.fly.dev (single machine enforced)"
 echo
 echo "each member's .env needs (with THEIR token from above):"
 echo "  PRESENCE_BOARDS=...existing...,$BOARD"
