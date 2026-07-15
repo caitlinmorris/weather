@@ -35,11 +35,18 @@ def find_segment(
 ) -> Segment | None:
     """Locate the live segment matching a stored observation's span — the
     sanctioned path for eval tools to reach transcript text (raw access
-    stays inside pipeline/, per the boundary tests)."""
+    stays inside pipeline/, per the boundary tests).
+
+    Compares datetimes, not strings: pydantic serializes UTC as "...Z",
+    isoformat() as "...+00:00" — same instant, different spelling."""
+    from datetime import datetime
+
+    want_start = datetime.fromisoformat(t_start_iso.replace("Z", "+00:00"))
+    want_end = datetime.fromisoformat(t_end_iso.replace("Z", "+00:00"))
     for person, seg in gather_segments(min_minutes=min_minutes):
         if (person == person_id
-                and seg.t_start.isoformat() == t_start_iso
-                and seg.t_end.isoformat() == t_end_iso):
+                and seg.t_start == want_start
+                and seg.t_end == want_end):
             return seg
     return None
 
