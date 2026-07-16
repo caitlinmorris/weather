@@ -31,6 +31,9 @@ touching code.** docs/v0.1-plan.md is the (completed) V0.1 plan.
 - Before implementing anything new or structural: state the plan in 3–6 bullets,
   name the alternatives you rejected and why, wait for approval.
 - Small diffs. One concern per change. Explain design decisions as you go.
+- The lab notebook is docs/lab-notebook.md — surprises and stage-closes get
+  a same-day entry (what changed, what the data contradicted, one decision
+  + rationale). Append chronologically at the bottom.
 - No new dependencies without asking. Approved: pydantic, numpy, anthropic,
   pytest, pywebview.
 - If you'd argue for two designs about equally, stop and say so — that decision
