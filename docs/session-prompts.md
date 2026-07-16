@@ -8,9 +8,9 @@ and writes a memo to docs/decisions/ instead of coin-flipping.*
 
 | # | Task | Model | Trigger |
 |---|------|-------|---------|
-| 1 | Eval failure analysis | Fable | labels done, run_eval output in hand |
-| 2 | Candidate mining build+run | Opus | anytime after labeling starts |
-| 3 | Phase 4 redesign sparring | Fable | before/during the redesign session |
+| 1 | ~~Eval failure analysis~~ | — | DONE 2026-07-16 in-session |
+| 2 | ~~Candidate mining~~ | — | DONE 2026-07-16 (mine_candidates.py; none admitted) |
+| 3 | ~~Phase 4 redesign~~ | — | DONE 2026-07-16 -> docs/person-model-spec-v1.md |
 | 4 | Prompt v4 authoring | Fable | after Phase 4 decisions |
 | 5 | v4 migration + re-eval | Opus | after v4 prompt exists |
 | 6 | ~~CaptureSource + tool adapter~~ | — | DONE 2026-07-15 in-session (Warp): sources/ pkg + warp.py, 62 tests |
