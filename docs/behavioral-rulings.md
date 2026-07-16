@@ -24,18 +24,18 @@ you'd EXCLUDE — outputs that look alarming but shouldn't count? (e.g., a
 search returning nothing; a linter's warnings; output that merely
 CONTAINS the word "error" in prose?)
 
-> _your ruling:_
+> _your ruling:_  Generally, failure. Exception: output that contains the word "error" in prose but is not associated with an error exit code. 
 
 **A2.** You cancel/interrupt a command halfway. Failure, success, or
 neither?
 
-> _your ruling:_
+> _your ruling:_ Neither. Dependent on next command - if semantically something like "no, don't..." then failure. If just a new idea or different approach, neutral.
 
 **A3.** Name this measurement. (The starter code called the ratio of
 failed runs "error_density" — what would YOU call "how much of what I
 tried went wrong"?)
 
-> _your name:_
+> _your name:_Error_frequency
 
 ## B. What is a losing streak?
 
@@ -73,7 +73,7 @@ prompt? (Faster? Shorter? More repetitive? Something else entirely —
 long silences while you stare?) Describe the signature you believe in;
 we'll only encode what you'd stand behind.
 
-> _your ruling:_
+> _your ruling:_ Often: shorter, repeated prompts ("no, that still didn't work."). If it really gets frustrating, all caps. This will be person dependent though.
 
 **C2.** How many prompts before a rhythm claim is honest? (Below that:
 "we don't know.")
