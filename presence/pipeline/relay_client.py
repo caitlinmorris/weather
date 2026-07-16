@@ -30,14 +30,13 @@ def to_wire(state: PersonState, tier: str = "topic") -> dict:
         "topic_micro": state.topic_micro,
         "topic_tags": state.topic_tags,
         "phase": state.phase.value,
-        "openness": state.openness.value,
         "staleness_hours": state.staleness_hours,
         "last_active": state.last_active.isoformat() if state.last_active else None,
     }
     if tier == "presence":
         # Presence-only board: heartbeat and rhythm, no "what" at all.
         wire.update(topic_gist="", topic_micro="", topic_tags=[],
-                    phase="unknown", openness="unknown")
+                    phase="unknown")
     return wire
 
 

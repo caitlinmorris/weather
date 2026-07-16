@@ -20,7 +20,7 @@ from presence.pipeline.config import PRIVATE_DB
 from presence.pipeline.store import PrivateStore
 
 LABELS_FILE = Path(__file__).parent / "labels" / "raw" / "labels.jsonl"
-FIELDS = ("phase", "momentum", "stance", "openness")
+FIELDS = ("phase", "momentum", "stance")
 CONF_BINS = ((0.0, 0.5), (0.5, 0.7), (0.7, 0.85), (0.85, 1.01))
 
 
@@ -160,12 +160,91 @@ def consistency(n: int) -> None:
     print("\n(a field that disagrees with itself can't agree with you)")
 
 
+# --- v4 verdict: re-extract the labeled sample, grade the predictions --------------
+
+
+def v4check() -> None:
+    """Re-extract every labeled sample segment with the CURRENT extractor and
+    grade v4's pre-registered predictions against the same human labels.
+    Whole segments (previous=None) for comparability with the labels' unit.
+    Costs roughly one extraction per labeled segment."""
+    from presence.extract.extractor import Extractor
+    from presence.pipeline.sample_extract import find_segment
+
+    SAMPLE_FILE = LABELS_FILE.parent / "sample.jsonl"
+    samples = {r["observation_id"]: r for r in
+               (json.loads(l) for l in SAMPLE_FILE.read_text().splitlines() if l)}
+    rows = [json.loads(l) for l in LABELS_FILE.read_text().splitlines() if l]
+    rows = [r for r in rows if not r.get("skipped")]
+
+    # Her labels used the v0 stance vocabulary; map onto the v1.0 axis the
+    # same way the db migration did (approximation, stated).
+    STANCE_MAP = {"exercising_expertise": "directing", "mixed": "collaborating"}
+
+    extractor = Extractor()
+    print(f"re-extracting {len(rows)} labeled segments at "
+          f"{extractor.extractor_version}…")
+    old_pairs = {f: [] for f in FIELDS}
+    new_pairs = {f: [] for f in FIELDS}
+    new_values = {f: [] for f in FIELDS}
+    for r in rows:
+        s = samples.get(r["observation_id"])
+        if not s:
+            continue
+        seg = find_segment(s["person_id"], s["t_start"], s["t_end"])
+        if seg is None:
+            continue
+        new = extractor.extract_segment(seg, person_id="v4check")
+        for f in FIELDS:
+            label = r["labels"].get(f)
+            if label is None:
+                continue
+            if f == "stance":
+                label = STANCE_MAP.get(label, label)
+            new_val = getattr(new, f).value
+            new_pairs[f].append((label, new_val))
+            new_values[f].append(new_val)
+            if f != "stance":  # old stance vocabulary isn't comparable
+                old_pairs[f].append((r["labels"][f], r["extractor"][f]))
+
+    print(f"\n{'field':<10} {'old agree':>9} {'new agree':>9} "
+          f"{'new kappa':>9} {'new unk':>8}")
+    for f in FIELDS:
+        np_, op = new_pairs[f], old_pairs[f]
+        if not np_:
+            continue
+        new_agree = sum(1 for a, b in np_ if a == b) / len(np_)
+        old_agree = (sum(1 for a, b in op if a == b) / len(op)) if op else None
+        kappa = cohen_kappa(np_)
+        unk = new_values[f].count("unknown") / len(new_values[f])
+        old_s = f"{old_agree:.0%}" if old_agree is not None else "   —"
+        kappa_s = f"{kappa:.2f}" if kappa is not None else "degen"
+        print(f"{f:<10} {old_s:>9} {new_agree:>9.0%} {kappa_s:>9} {unk:>8.0%}")
+
+    m = new_values["momentum"]
+    flowing = m.count("flowing") / len(m) if m else 0
+    mono = [1 for (a, b) in new_pairs["momentum"] if a != b and b == "flowing"]
+    errs = [1 for (a, b) in new_pairs["momentum"] if a != b]
+    print(f"\npredictions scorecard:")
+    print(f"  momentum flowing share: {flowing:.0%}  (prediction: <50%, was 87%)")
+    print(f"  momentum errors that are ->flowing: {len(mono)}/{len(errs)}"
+          f"  (prediction: no longer ~all)")
+    s = new_values["stance"]
+    print(f"  stance distribution: "
+          + ", ".join(f"{v}:{s.count(v)}" for v in sorted(set(s)))
+          + "  (prediction: non-degenerate)")
+    total_unk = sum(v.count("unknown") for v in new_values.values())
+    print(f"  unknown verdicts anywhere: {total_unk}  (prediction: > 0)")
+
+
 def main() -> None:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "labels"
     if cmd == "baseline":
         baseline()
     elif cmd == "consistency":
         consistency(int(sys.argv[2]) if len(sys.argv) > 2 else 10)
+    elif cmd == "v4check":
+        v4check()
     else:
         eval_labels()
 

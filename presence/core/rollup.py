@@ -18,7 +18,6 @@ from datetime import datetime, timedelta
 
 from presence.core.schema import (
     FIELD_TIERS,
-    Openness,
     PersonState,
     Phase,
     PresenceLevel,
@@ -65,8 +64,6 @@ def rollup_window(
         state.topic_tags = list(newest.topic.tags)
     if allowed("phase"):
         state.phase = _recency_weighted_mode([o.phase for o in observations])
-    if allowed("openness"):
-        state.openness = _recency_weighted_mode([o.openness for o in observations])
     if allowed("stance"):  # T1: stays UNKNOWN at ambient tier
         state.stance = _recency_weighted_mode([o.stance for o in observations])
     if allowed("momentum"):  # T1: stays UNKNOWN at ambient tier

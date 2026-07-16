@@ -49,18 +49,18 @@ class Momentum(str, Enum):
 
 
 class Stance(str, Enum):
+    """v1.0 axis: the person's relationship to the AI in this window.
+    (v0's human-expertise axis was degenerate — κ=0.00; see
+    person-model-spec-v1.md.)"""
+
     LEARNING = "learning"
-    MIXED = "mixed"
-    EXERCISING_EXPERTISE = "exercising_expertise"
+    COLLABORATING = "collaborating"
+    DIRECTING = "directing"
     UNKNOWN = "unknown"
 
 
-class Openness(str, Enum):
-    HEADS_DOWN = "heads_down"
-    NEUTRAL = "neutral"
-    OPEN = "open"
-    SEEKING_INPUT = "seeking_input"
-    UNKNOWN = "unknown"
+# Openness was KILLED in v1.0: construct-invalid (the labeler couldn't
+# answer her own question), anti-calibrated, no colleague-facing consumer.
 
 
 class PresenceLevel(str, Enum):
@@ -108,7 +108,6 @@ class SessionObservation(BaseModel):
     phase: Phase = Phase.UNKNOWN
     momentum: Momentum = Momentum.UNKNOWN
     stance: Stance = Stance.UNKNOWN
-    openness: Openness = Openness.UNKNOWN
     trajectory_note: str = ""
 
     confidence: dict[str, float] = Field(default_factory=dict)
@@ -143,7 +142,6 @@ class PersonState(BaseModel):
     topic_tags: list[str] = Field(default_factory=list)
     phase: Phase = Phase.UNKNOWN
     stance: Stance = Stance.UNKNOWN
-    openness: Openness = Openness.UNKNOWN
     momentum: Momentum = Momentum.UNKNOWN
 
     # Raw sequence is T0: only the watcher consumes it, and only its conclusions
@@ -165,7 +163,6 @@ FIELD_TIERS: dict[str, Tier] = {
     "topic_tags": Tier.T2_AMBIENT,
     "phase": Tier.T2_AMBIENT,
     "stance": Tier.T1_AGGREGATE_ONLY,
-    "openness": Tier.T2_AMBIENT,
     "momentum": Tier.T1_AGGREGATE_ONLY,  # the sensitive field; weather only
     "trajectory": Tier.T0_PRIVATE,
     "staleness_hours": Tier.T2_AMBIENT,

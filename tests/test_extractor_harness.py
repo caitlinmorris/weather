@@ -5,7 +5,7 @@ from datetime import timedelta
 
 import pytest
 
-from presence.core.schema import Momentum, Openness, Phase, SessionObservation
+from presence.core.schema import Momentum, Phase, SessionObservation, Stance
 from presence.extract.extractor import (
     ExtractionError,
     Extractor,
@@ -22,10 +22,9 @@ VALID_RESPONSE = json.dumps(
         "topic": {"tags": ["utilities", "refactoring"], "gist": "tidying utility code", "micro_gist": "tidying utilities", "domain": "tooling"},
         "phase": "building",
         "momentum": "steady",
-        "stance": "exercising_expertise",
-        "openness": "neutral",
+        "stance": "directing",
         "trajectory_note": "moved from sorting helper to config loader",
-        "confidence": {"phase": 0.8, "momentum": 0.7, "stance": 0.6, "openness": 0.2},
+        "confidence": {"phase": 0.8, "momentum": 0.7, "stance": 0.2},
         "evidence": {"phase": "adding and refactoring code", "momentum": "few reversals"},
     }
 )
@@ -63,11 +62,12 @@ def test_extraction_builds_valid_observation(tmp_path):
     assert isinstance(obs, SessionObservation)
     assert obs.phase == Phase.BUILDING
     assert obs.momentum == Momentum.STEADY
+    assert obs.stance == Stance.UNKNOWN  # 0.2 confidence floors to unknown
     assert obs.topic.gist == "tidying utility code"
     assert obs.topic.micro_gist == "tidying utilities"
     assert obs.t_start == T0  # segment bounds, not extraction time
     assert obs.t_end == T0 + timedelta(minutes=51)
-    assert obs.extractor_version.startswith("v3+")
+    assert obs.extractor_version.startswith("v4+")
 
 
 def test_word_caps_enforced_mechanically(tmp_path):
@@ -83,11 +83,11 @@ def test_word_caps_enforced_mechanically(tmp_path):
 
 
 def test_confidence_floor_forces_unknown(tmp_path):
-    # openness confidence 0.2 in VALID_RESPONSE -> harness overrides to unknown.
+    # stance confidence 0.2 in VALID_RESPONSE -> harness overrides to unknown.
     client = FakeClient([VALID_RESPONSE])
     obs = Extractor(client=client).extract_segment(_segment(tmp_path), person_id="p1")
-    assert obs.openness == Openness.UNKNOWN
-    assert obs.confidence["openness"] == 0.2  # recorded, not erased
+    assert obs.stance == Stance.UNKNOWN
+    assert obs.confidence["stance"] == 0.2  # recorded, not erased
 
 
 def test_unrecognized_enum_resolves_to_unknown(tmp_path):
@@ -159,12 +159,13 @@ def test_chunking_rolls_observation_forward(tmp_path):
 
 
 def test_system_prompt_preamble_stripped():
-    for version in ("v1", "v2", "v3"):
+    for version in ("v1", "v2", "v3", "v4"):
         system = load_system_prompt(version)
         assert "state extractor" in system
         assert "unknown is a good answer" in system.lower()
-    assert "micro_gist" in load_system_prompt("v3")
-    assert "writing_up" not in load_system_prompt("v3")
+    assert "micro_gist" in load_system_prompt("v4")
+    assert "openness" not in load_system_prompt("v4").lower()
+    assert "directing" in load_system_prompt("v4")
 
 
 def test_sidechain_and_meta_events_excluded():

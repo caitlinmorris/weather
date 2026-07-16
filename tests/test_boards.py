@@ -54,6 +54,7 @@ def test_presence_tier_strips_all_what():
     assert wire["topic_gist"] == "" and wire["topic_micro"] == ""
     assert wire["topic_tags"] == [] and wire["phase"] == "unknown"
     assert wire["last_active"] is None and "momentum" not in wire
+    assert "openness" not in wire  # killed in v1.0
     # topic tier keeps the what
     assert to_wire(state, tier="topic")["topic_gist"] == "secret gist"
 
@@ -65,7 +66,7 @@ def test_composite_merge_tags_boards_and_dedups(tmp_path, monkeypatch):
         type("C", (), {"DATA_DIR": tmp_path}),
     )
     shared = {"updated_at": "2026-07-15T09:00:00+00:00", "topic_gist": "g",
-              "phase": "building", "openness": "neutral"}
+              "phase": "building"}
     (tmp_path / "group_cache_dan.json").write_text(json.dumps(
         {"per_person": [{"person_id": "caitlin", "states": [shared]},
                         {"person_id": "dan", "states": [dict(shared)]}]}))

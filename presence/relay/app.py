@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from presence.core.schema import Openness, Phase, PresenceLevel
+from presence.core.schema import Phase, PresenceLevel
 
 RING_MAX = 40
 RING_TTL_SECONDS = 7 * 24 * 3600
@@ -52,7 +52,9 @@ class WireState(BaseModel):
     topic_micro: str = Field("", max_length=80)
     topic_tags: list[str] = Field(default_factory=list, max_length=7)
     phase: Phase = Phase.UNKNOWN
-    openness: Openness = Openness.UNKNOWN
+    # Deprecated in v1.0 (field killed): accepted-and-ignored so pre-v1.0
+    # clients keep working during the transition; never stored.
+    openness: str | None = None
     staleness_hours: float = Field(0.0, ge=0)
     # Optional so pre-fast-path clients remain valid; timestamps only.
     last_active: datetime | None = None
@@ -97,6 +99,7 @@ def create_app(token_hashes: dict[str, str] | None = None) -> FastAPI:
         ring = rings[person]
         _prune(ring)
         payload = state.model_dump(mode="json")
+        payload.pop("openness", None)  # deprecated: never stored
         # Idempotent by timestamp, latest-write-wins: clients backfill their
         # recent window every cycle, so the ring self-heals after restarts
         # without duplicates — and a re-extracted (corrected) state replaces

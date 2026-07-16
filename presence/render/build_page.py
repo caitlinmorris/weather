@@ -47,7 +47,6 @@ def group_cache_data() -> tuple[list[dict], list[str]] | None:
                     "micro": s.get("topic_micro", ""),
                     "tags": s.get("topic_tags", []),
                     "phase": s.get("phase", "unknown"),
-                    "openness": s.get("openness", "unknown"),
                     "last_active": s.get("last_active"),
                     "board": board,
                 })
@@ -71,7 +70,6 @@ def page_data(store: PublicStore) -> list[dict]:
                 "micro": s.topic_micro,
                 "tags": s.topic_tags,
                 "phase": s.phase.value,
-                "openness": s.openness.value,
             }
             for s in store.history(person)
         ]

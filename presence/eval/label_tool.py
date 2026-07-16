@@ -22,7 +22,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from presence.core.schema import Momentum, Openness, Phase, Stance
+from presence.core.schema import Momentum, Phase, Stance
 from presence.extract.extractor import _middle_truncate
 from presence.pipeline.config import PERSON_ID, PRIVATE_DB
 from presence.pipeline.sample_extract import find_segment
@@ -37,7 +37,6 @@ FIELDS = {
     "phase": Phase,
     "momentum": Momentum,
     "stance": Stance,
-    "openness": Openness,
 }
 
 

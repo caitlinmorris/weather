@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 
 from presence.core.schema import (
     Momentum,
-    Openness,
     PersonState,
     Phase,
     PresenceLevel,
@@ -35,7 +34,6 @@ def wire(person="alice", **over):
         "topic_micro": "synthesizing fixtures",
         "topic_tags": ["synthetic"],
         "phase": "building",
-        "openness": "neutral",
         "staleness_hours": 0.1,
     }
     base.update(over)
@@ -103,6 +101,12 @@ def test_token_cannot_write_someone_elses_state(client):
 
 
 def test_over_tier_fields_rejected_not_ignored(client):
+    # openness is deprecated-but-accepted during the transition (and never
+    # stored); everything else beyond-tier is rejected outright.
+    r = client.post("/state", json=wire(openness="neutral"), headers=auth(TOK_A))
+    assert r.status_code == 204
+    states = client.get("/group", headers=auth(TOK_B)).json()["per_person"][0]["states"]
+    assert all("openness" not in s for s in states)
     for forbidden in ("momentum", "stance", "trajectory", "evidence"):
         r = client.post(
             "/state", json=wire(**{forbidden: "grinding"}), headers=auth(TOK_A)
@@ -143,7 +147,6 @@ def test_to_wire_strips_private_tier_fields():
         momentum=Momentum.GRINDING,   # T1: must not survive to_wire
         stance=Stance.LEARNING,       # T1: must not survive to_wire
         phase=Phase.BUILDING,
-        openness=Openness.NEUTRAL,
     )
     payload = to_wire(state)
     assert "momentum" not in payload and "stance" not in payload

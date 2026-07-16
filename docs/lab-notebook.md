@@ -89,6 +89,23 @@ of analysis fixed to extraction windows; confidence demoted to
 diagnostics; zero of eight mined candidates admitted. **v1.0 is smaller
 than v0.1.** Prompt v4 authored same day with falsifiable predictions.
 
+## 2026-07-16 (later) — v1.0 ships; v4 graded honestly: partial fail
+
+Migration landed in one push: openness deleted end-to-end (relay accepts-
+and-ignores it for un-pulled clients), stance re-axed, observations became
+appended extraction windows (no more replace; no mass re-extraction of
+history — old versions stand), 47 stance values migrated in place, both
+relays redeployed. Then the graded exam: re-extracted all 27 labeled
+segments at v4. **What the data contradicted:** evidence-before-verdict —
+the strongest prompt-level abstention structure — produced ZERO unknowns;
+Haiku will not abstain by being asked. Momentum moved the right direction
+(flowing 87→70%, monodirectionality broken) but sits at chance without
+the behavioral channel — the two-channel design claim, now measured twice.
+**Decision:** no v4.1 prompt-tinkering; abstention becomes a harness
+mechanism (disagreement-derived) when queued, and momentum waits for
+behavioral.py (Stage 3, mine to write). Failing predictions in public
+beats passing vibes in private.
+
 ---
 
 ## Media shot-list (manual captures, ongoing)

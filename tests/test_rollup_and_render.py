@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 from presence.core import rollup
 from presence.core.schema import (
     Momentum,
-    Openness,
     Phase,
     SessionObservation,
     Stance,
@@ -31,7 +30,6 @@ def _obs(minute, phase=Phase.BUILDING, momentum=Momentum.GRINDING):
         phase=phase,
         momentum=momentum,
         stance=Stance.LEARNING,
-        openness=Openness.NEUTRAL,
     )
 
 
@@ -44,7 +42,6 @@ def test_ambient_tier_strips_momentum_and_stance():
     assert state.topic_gist == "synthetic status line"
     assert state.topic_micro == "synthesizing fixtures"
     assert state.phase == Phase.BUILDING
-    assert state.openness == Openness.NEUTRAL
 
 
 def test_recency_weighted_mode_prefers_recent_and_known():

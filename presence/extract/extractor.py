@@ -19,7 +19,6 @@ from pathlib import Path
 
 from presence.core.schema import (
     Momentum,
-    Openness,
     Phase,
     SessionObservation,
     Source,
@@ -38,7 +37,7 @@ HUMAN_PROMPT_KEEP = 2_000  # human prompts are kept most generously
 ASSISTANT_KEEP = 1_200
 TOOL_RESULT_KEEP = 400  # first/last 200 chars; behavioral channel reads them in full
 CONFIDENCE_FLOOR = 0.5
-DEFAULT_PROMPT_VERSION = "v3"
+DEFAULT_PROMPT_VERSION = "v4"
 
 # Spec word limits, enforced mechanically (the model is told they're hard).
 WORD_CAPS = {"gist": 15, "micro_gist": 5, "trajectory_note": 20}
@@ -47,7 +46,6 @@ ENUM_FIELDS = {
     "phase": Phase,
     "momentum": Momentum,
     "stance": Stance,
-    "openness": Openness,
 }
 
 
@@ -246,7 +244,6 @@ def _observation_for_prompt(obs: SessionObservation) -> str:
             "phase": obs.phase.value,
             "momentum": obs.momentum.value,
             "stance": obs.stance.value,
-            "openness": obs.openness.value,
             "trajectory_note": obs.trajectory_note,
         }
     )
@@ -313,7 +310,6 @@ def _build_observation(
         phase=enum_value("phase", Phase),
         momentum=enum_value("momentum", Momentum),
         stance=enum_value("stance", Stance),
-        openness=enum_value("openness", Openness),
         trajectory_note=_cap_words(
             str(fields.get("trajectory_note") or ""), WORD_CAPS["trajectory_note"]
         ),

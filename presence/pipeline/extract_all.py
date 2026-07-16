@@ -30,10 +30,6 @@ def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
         raise ExtractionError("no ANTHROPIC_API_KEY in environment or .env")
 
     private = PrivateStore(PRIVATE_DB)
-    # (person, t_start) -> (t_end, extractor_version) of stored observations.
-    existing = {
-        (p, a): (b, v) for (p, a, b), v in private.spans().items()
-    }
 
     by_person: dict[str, list] = {}
     for person, seg in gather_segments(min_minutes=min_minutes):
@@ -47,33 +43,28 @@ def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
     for person, segments in sorted(by_person.items()):
         for seg in segments:
             start, end = seg.t_start.isoformat(), seg.t_end.isoformat()
-            stored = existing.get((person, start))
-            if stored == (end, extractor.extractor_version):
+
+            # v1.0 unit of analysis: observations are extraction WINDOWS,
+            # appended — a long session becomes a sequence, never one
+            # replaced label. The rolling-update cost property is kept: each
+            # window reads only events past what previous windows covered,
+            # with the latest observation as compressed memory. (History
+            # extracted under older prompt versions is left standing; no
+            # mass re-extraction on version bumps.)
+            covered = private.covered_until(person, start, end)
+            if covered is not None and covered >= seg.t_end:
                 counts["skipped"] += 1
                 continue
-
-            # Rolling update (the design's core cost property): when a
-            # segment merely GREW under the same extractor version, feed the
-            # model only the events past the previous observation plus that
-            # observation as compressed memory — never the whole session
-            # again. Full re-reads happen only on version changes.
             delta_events = None
-            previous = None
-            if stored is not None:
-                stored_end, stored_version = stored
-                if stored_version == extractor.extractor_version:
-                    previous = private.get_span(person, start, stored_end)
-                    watermark = datetime.fromisoformat(stored_end)
-                    delta_events = [
-                        e for e in seg.events
-                        if e.timestamp and e.timestamp > watermark
-                    ]
-                    if not delta_events:
-                        counts["skipped"] += 1
-                        continue  # grew by nothing extractable; keep old obs
-                private.delete_span(person, start, stored_end)
-            if previous is None:
-                previous = private.latest(person)
+            if covered is not None:
+                delta_events = [
+                    e for e in seg.events
+                    if e.timestamp and e.timestamp > covered
+                ]
+                if not delta_events:
+                    counts["skipped"] += 1
+                    continue
+            previous = private.latest(person)
 
             try:
                 obs = extractor.extract_segment(
@@ -84,10 +75,12 @@ def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
                     print(f"  FAILED {person} {seg.t_start:%Y-%m-%d %H:%M}: {e}")
                 counts["failed"] += 1
                 continue
+            obs.t_start = covered or seg.t_start  # window bounds, not segment
+            obs.t_end = seg.t_end
             private.add(obs)
             counts["extracted"] += 1
             if verbose:
-                print(f"  {person:<16} {seg.t_start:%Y-%m-%d %H:%M}  {obs.topic.gist}")
+                print(f"  {person:<16} {obs.t_start:%Y-%m-%d %H:%M}  {obs.topic.gist}")
 
     public = rollup.open_public_writer(PUBLIC_DB)
     for person in sorted(by_person):

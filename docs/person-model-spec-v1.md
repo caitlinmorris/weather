@@ -48,6 +48,20 @@ ambient display consumes them). **v1.0 is smaller than v0.1.**
 - extractor unknown-rate: must be > 0 somewhere, or abstention still
   isn't real.
 
+## v4 re-eval RESULTS (2026-07-16, whole-segment comparability check)
+
+Graded honestly per the preamble's commitment: **partial failure.**
+momentum flowing-share 87%→70% (target <50%; direction right, magnitude
+missed); →flowing errors 92%→54% of errors (passed); momentum κ −0.09→0.09
+(still ~chance — the semantic channel's ceiling, measured twice: the rest
+of the fix is behavioral.py); stance non-degenerate (21 directing /
+6 collaborating) but κ=−0.25 vs MAPPED old-vocabulary labels (soft number;
+needs a fresh-vocabulary labeling round); **abstention still zero — Haiku
+will not abstain by being asked, in any prompt structure.** v1.0 abstention
+must be harness-derived (e.g., double-extraction disagreement → unknown) —
+queued as a mechanism decision. Phase untestable at segment grain by
+design; awaits window-grain labels.
+
 ## Migration notes (for the Phase 5 build)
 
 Wire compatibility: `openness` leaves the schema but the relay must

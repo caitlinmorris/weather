@@ -12,7 +12,7 @@ and writes a memo to docs/decisions/ instead of coin-flipping.*
 | 2 | ~~Candidate mining~~ | — | DONE 2026-07-16 (mine_candidates.py; none admitted) |
 | 3 | ~~Phase 4 redesign~~ | — | DONE 2026-07-16 -> docs/person-model-spec-v1.md |
 | 4 | ~~Prompt v4 authoring~~ | — | DONE 2026-07-16 (prompts/v4.md; deploys with #5) |
-| 5 | v4 migration + re-eval | Opus | after v4 prompt exists |
+| 5 | ~~v4 migration + re-eval~~ | — | DONE 2026-07-16: v1.0 live; v4 graded PARTIAL FAIL (results in spec-v1) |
 | 6 | ~~CaptureSource + tool adapter~~ | — | DONE 2026-07-15 in-session (Warp): sources/ pkg + warp.py, 62 tests |
 | 7 | Invite redemption (D2) build | Opus | after D1+D2 decisions recorded |
 | 8 | Stage 1 Socratic review | Opus | whenever core rewrite begins |

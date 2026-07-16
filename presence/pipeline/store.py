@@ -66,6 +66,19 @@ class PrivateStore:
         ).fetchone()
         return SessionObservation.model_validate_json(row[0]) if row else None
 
+    def covered_until(
+        self, person_id: str, range_start: str, range_end: str
+    ) -> datetime | None:
+        """v1.0 unit of analysis: observations are appended extraction
+        windows. Returns the latest instant already covered by windows
+        inside [range_start, range_end] — the next window begins there."""
+        row = self.conn.execute(
+            "SELECT MAX(t_end) FROM session_observations"
+            " WHERE person_id = ? AND t_start >= ? AND t_end <= ?",
+            (person_id, range_start, range_end),
+        ).fetchone()
+        return datetime.fromisoformat(row[0]) if row and row[0] else None
+
     def get_span(
         self, person_id: str, t_start: str, t_end: str
     ) -> SessionObservation | None:

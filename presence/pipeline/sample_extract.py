@@ -58,7 +58,7 @@ def print_observation(person: str, seg: Segment, obs) -> None:
     )
     print(f"  gist:       {obs.topic.gist}")
     print(f"  tags:       {', '.join(obs.topic.tags)}   [{obs.topic.domain}]")
-    for field in ("phase", "momentum", "stance", "openness"):
+    for field in ("phase", "momentum", "stance"):
         value = getattr(obs, field).value
         conf = obs.confidence.get(field)
         conf_str = f"{conf:.2f}" if conf is not None else "  — "
