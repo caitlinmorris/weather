@@ -18,7 +18,11 @@ touching code.** docs/v0.1-plan.md is the (completed) V0.1 plan.
 
 ## Division of labor
 
-- core/ and extract/prompts/ are conceptually HUMAN-OWNED (learning components).
+- core/ and extract/prompts/ are conceptually HUMAN-OWNED — via JUDGMENT-
+  AUTHORSHIP (docs/decisions/2026-07-16-judgment-authorship.md): the human
+  artifact is a plain-language rulings doc; code is its translation, every
+  branch citing a ruling, open questions flagged back rather than decided
+  silently, names following the human's vocabulary.
 - **V0.1 relaxation (in effect now, per docs/v0.1-plan.md decision 2):** Claude
   may draft first versions of core/ and prompts to reach the replay demo.
   Caitlin rewrites them by hand afterward; drafts are reference implementations.

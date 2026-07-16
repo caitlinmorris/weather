@@ -103,7 +103,14 @@ Run `python -m presence.render.app` daily. Watch your own status while working.
 - Allowed changes: constants only (decay, colors, intervals) — **Sonnet**.
 - **Exit:** 3 days of notes; a felt answer to "would I miss this?"
 
-## Stage 1 — Hand-rewrite the core (the learning debt) — ~3-4 days
+## Stage 1 — SUPERSEDED by judgment-authorship (memo 2026-07-16)
+
+Ownership of core/ is exercised by authoring rulings docs, not by typing
+Python. Stage 3's behavioral channel is the first application:
+docs/behavioral-rulings.md is the human artifact awaiting answers.
+Original stage kept below for the record.
+
+## Stage 1 (original) — Hand-rewrite the core — ~3-4 days
 
 The V0.1 relaxation ends here. Rewrite by hand, using Claude's drafts as
 reference to study against, not to copy: `schema.py`, `rollup.py`, then delete
