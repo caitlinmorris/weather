@@ -143,6 +143,15 @@ class SettingsApi:
                         "the room unchanged"}
         updates = settings_to_env(payload, current)
         config.update_env(updates)
+
+        from presence.relay.invite import rename_host_files
+
+        current_names = {b["name"] for b in current}
+        for b in payload.get("boards") or []:
+            name = (b.get("name") or "").strip()
+            original = (b.get("original") or "").strip()
+            if name and original and original != name and original in current_names:
+                rename_host_files(original, name)
         return {"ok": True}
 
     def save_and_restart(self, payload: dict) -> dict:

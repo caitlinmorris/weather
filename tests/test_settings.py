@@ -96,3 +96,24 @@ def test_board_backend_none_for_foreign_hosts():
 
     assert board_backend({"name": "x", "url": "https://evil.example.com"}) is None
     assert board_backend({"name": "x", "url": None}) is None
+
+
+def test_env_lines_first_time_user_no_placeholders():
+    from presence.relay.invite import env_lines
+
+    board = {"name": "dan", "url": "https://r.fly.dev", "tier": "topic"}
+    lines = env_lines(board, "tok")
+    assert "PRESENCE_BOARDS=dan" in lines
+    assert "..." not in lines  # nothing for the invitee to hand-edit
+
+
+def test_rename_host_files_moves_cf_board_files(tmp_path, monkeypatch):
+    from presence.relay import invite
+
+    monkeypatch.setattr(invite, "WORKER_DIR", tmp_path)
+    (tmp_path / "wrangler.dan.toml").write_text("x")
+    (tmp_path / "hashes.dan.json").write_text("{}")
+    invite.rename_host_files("dan", "family")
+    assert (tmp_path / "wrangler.family.toml").is_file()
+    assert (tmp_path / "hashes.family.json").is_file()
+    assert not (tmp_path / "wrangler.dan.toml").exists()

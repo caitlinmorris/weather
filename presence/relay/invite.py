@@ -105,14 +105,25 @@ def _push_hashes(board: dict, backend: str, hashes: dict) -> None:
 
 
 def env_lines(board: dict, token: str) -> str:
-    """The .env block the invitee appends — paste-ready."""
+    """The .env block the invitee appends — paste-ready for a first-time
+    user (one board, no placeholders to edit)."""
     key = board["name"].upper().replace("-", "_")
     return "\n".join([
-        f"PRESENCE_BOARDS=...their existing boards...,{board['name']}",
+        f"PRESENCE_BOARDS={board['name']}",
         f"RELAY_URL_{key}={board['url']}",
         f"RELAY_TOKEN_{key}={token}",
         f"PRESENCE_TIER_{key}={board['tier']}",
     ])
+
+
+def rename_host_files(old: str, new: str) -> None:
+    """Keep host-side per-board files in step with a board rename, so the
+    invite button still recognizes a renamed CF board as ours."""
+    for pattern in ("wrangler.{}.toml", "hashes.{}.json"):
+        src = WORKER_DIR / pattern.format(old)
+        dst = WORKER_DIR / pattern.format(new)
+        if src.is_file() and not dst.exists():
+            src.rename(dst)
 
 
 def invite(board_name: str, person: str) -> dict:
@@ -151,10 +162,12 @@ def invite(board_name: str, person: str) -> dict:
         "token": token,
         "message": (
             f"You're invited to the '{board_name}' we.ather room.\n"
-            f"After installing (README), append to your .env:\n\n"
+            f"After installing (README), add to your .env:\n\n"
             f"{env_lines(board, token)}\n\n"
             f"Then restart the app and run:\n"
-            f"  .venv/bin/python -m presence.pipeline.selftest"
+            f"  .venv/bin/python -m presence.pipeline.selftest\n\n"
+            f"(Already using we.ather? Keep your existing PRESENCE_BOARDS "
+            f"line and just add ,{board_name} to it.)"
         ),
     }
 
