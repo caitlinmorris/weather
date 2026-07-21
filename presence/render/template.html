@@ -308,6 +308,19 @@ let weatherCache = "";
 let hoverBlocks = [];   // field view hit targets, rebuilt each frame
 
 // --- field view -------------------------------------------------------------------
+function roomPhraseFor(bn, t) {
+  let a = 0, r = 0;
+  for (const p of DATA) {
+    const inBoard = p.states.filter(s => s.board === bn && s.ms <= t);
+    if (!inBoard.length) continue;
+    const latest = inBoard[inBoard.length - 1];
+    const alive = LIVE ? Math.max(latest.ms, p.aliveMs || 0) : latest.ms;
+    const ageH = (t - alive) / 36e5;
+    if (ageH < ACTIVE_H) a++; else if (ageH < 24) r++;
+  }
+  return a ? a + " making weather" : r ? r + " in the air today" : "still air";
+}
+
 function drawFieldView(t, now) {
   const T = THEMES[theme];
   const W = field.clientWidth, H = field.clientHeight;
@@ -322,6 +335,7 @@ function drawFieldView(t, now) {
   let strips;
   if (roomMode === "stacked" && ROOMS.length > 1) {
     strips = ROOMS.map((room, i) => ({
+      key: room.key,
       label: room.label,
       yOff: i * (STRIP_H + STRIP_LABEL_H) + STRIP_LABEL_H,
       rows: Math.floor(STRIP_H / CELL),
@@ -330,6 +344,7 @@ function drawFieldView(t, now) {
   } else if (roomMode !== "fused" && roomMode !== "stacked") {
     const room = ROOMS.find(r => r.key === roomMode);
     strips = [{
+      key: roomMode,
       label: room ? room.label : roomMode,
       yOff: STRIP_LABEL_H,
       rows: Math.floor((H - STRIP_LABEL_H) / CELL),
@@ -344,7 +359,9 @@ function drawFieldView(t, now) {
       ctx.fillStyle = T.label;
       ctx.font = "10px ui-monospace, Menlo, monospace";
       ctx.textAlign = "left";
-      ctx.fillText(strip.label, 4, strip.yOff - 4);
+      const phrase = strip.key ? roomPhraseFor(strip.key, t) : "";
+      ctx.fillText(strip.label + (phrase ? " \u00b7 " + phrase : ""),
+                   4, strip.yOff - 4);
     }
 
     ctx.fillStyle = T.noise;
@@ -490,7 +507,11 @@ function draw(now) {
     : [...new Set(ALL_STATES.map(s => s.board).filter(Boolean))]
         .map(k => ({ key: k, label: k }));
   let weather;
-  if (LIVE && boardNames.length > 1) {
+  const stripsShowing = view === "field" && ROOMS.length > 1
+    && roomMode !== "fused";
+  if (stripsShowing) {
+    weather = "";  // strip headers carry each room's phrase
+  } else if (LIVE && boardNames.length > 1) {
     weather = boardNames.map(({ key: bn, label }) => {
       let a = 0, r = 0;
       for (const p of DATA) {
