@@ -206,12 +206,17 @@ impossible under this design. Build priority raised accordingly.)*
 - **Forced by:** onboarding more than ~2 more people; the manual token
   dance and name-match scaffolding don't survive a cohort evening.
 
-### D3. Composite view — DECIDED 2026-07-15 (built): blend + hover provenance
+### D3. Composite view — DECIDED 2026-07-15 (built); provenance REVISED 2026-07-21
 
-Boards paint one field; event hovers gain "via <board>" (only when >1
-board); weather lines are strictly per-board. Bands remain a fallback if
-blend proves illegible in practice. Overlap dedup: by timestamp, viewer
-renders once.
+Boards paint one field; weather lines strictly per-board. **Lived use
+revised the provenance design:** "via <board>" hover labels read as
+person-attribution when board keys are person-named, and turned out to be
+noise regardless — the meaningful attribution is the source PERSON, which
+the dial already governs. Board names are now pure config plumbing,
+invisible in the UI; rooms display as their membership ("with dan",
+"with lara +2", "new room" when empty). Naming guidance: config keys
+should name the ROOM, not a member. Bands remain a fallback if blend
+proves illegible. Overlap dedup: by timestamp, viewer renders once.
 
 *(original analysis kept below)*
 - Blend all boards into one field with hover provenance ("via studio

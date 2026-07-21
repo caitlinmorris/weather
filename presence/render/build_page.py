@@ -29,14 +29,18 @@ def group_cache_data() -> tuple[list[dict], list[str]] | None:
     timestamp. Boards' data never mixes server-side — this merge is the
     only place they meet, and only for rendering."""
     merged: dict[str, dict] = {}
-    boards: list[str] = []
+    boards: list[dict] = []
     for cache in sorted(config.DATA_DIR.glob("group_cache*.json")):
         if time.time() - cache.stat().st_mtime > CACHE_FRESH_SECONDS:
             continue  # stale board: fall back rather than lie quietly
         board = cache.stem.replace("group_cache", "").strip("_") or "board"
-        boards.append(board)  # an EMPTY board still exists — room, lights on
+        # A room is best described by who's in it: display labels derive
+        # from the OTHER members, never from the config key (which is
+        # plumbing, and often embarrassingly named after a person).
+        boards.append({"key": board, "members": set()})
         group = json.loads(cache.read_text())
         for entry in group.get("per_person", []):
+            boards[-1]["members"].add(entry["person_id"])
             person = merged.setdefault(
                 entry["person_id"], {"person": entry["person_id"], "states": {}}
             )
@@ -52,6 +56,16 @@ def group_cache_data() -> tuple[list[dict], list[str]] | None:
                 })
     if not boards:
         return None
+    me = config.PERSON_ID
+    for b in boards:
+        others = sorted(b["members"] - {me})
+        if not others:
+            b["label"] = "new room"  # lights on, nobody home yet
+        elif len(others) <= 2:
+            b["label"] = "with " + " + ".join(others)
+        else:
+            b["label"] = f"with {others[0]} +{len(others) - 1}"
+        del b["members"]
     data = [
         {"person": pid, "states": sorted(p["states"].values(), key=lambda s: s["t"])}
         for pid, p in sorted(merged.items()) if p["states"]

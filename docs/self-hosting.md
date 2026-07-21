@@ -71,7 +71,9 @@ members, seeing only the low-resolution shared states).
 2. Install your own client: `./install.sh` (it walks you through your
    API key and — the important moment — WHICH project folders it may
    observe; nothing outside your picks is ever read).
-3. Create your board (this mints member tokens too — agree on lowercase
+3. Create your board — name it after the ROOM, not a person ("studio",
+   "thesis", "homies"): the name is config plumbing; displays show rooms
+   as "with <members>". This also mints member tokens (agree lowercase
    short names with your members first):
    ```
    ./presence/relay/make_board_cf.sh <board-name> <you> <colleague>

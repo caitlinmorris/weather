@@ -63,7 +63,7 @@ def test_composite_merge_tags_boards_and_dedups(tmp_path, monkeypatch):
     from presence.render import build_page
     monkeypatch.setattr(
         "presence.render.build_page.config",
-        type("C", (), {"DATA_DIR": tmp_path}),
+        type("C", (), {"DATA_DIR": tmp_path, "PERSON_ID": "caitlin"}),
     )
     shared = {"updated_at": "2026-07-15T09:00:00+00:00", "topic_gist": "g",
               "phase": "building"}
@@ -74,7 +74,10 @@ def test_composite_merge_tags_boards_and_dedups(tmp_path, monkeypatch):
         {"per_person": [{"person_id": "caitlin", "states": [dict(shared)]},
                         {"person_id": "lara", "states": [dict(shared)]}]}))
     data, boards = build_page.group_cache_data()
-    assert boards == ["dan", "lara"]
+    assert [b["key"] for b in boards] == ["dan", "lara"]
+    # Rooms are labeled by their OTHER members, never the config key.
+    labels = {b["key"]: b["label"] for b in boards}
+    assert labels["dan"] == "with dan" and labels["lara"] == "with lara"
     people = {p["person"]: p for p in data}
     assert set(people) == {"caitlin", "dan", "lara"}
     # Self appears on both boards but dedups to one state by timestamp.
