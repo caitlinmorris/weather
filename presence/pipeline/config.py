@@ -91,6 +91,29 @@ def boards() -> list[dict]:
     return []
 
 
+def update_env(updates: dict, env_path: Path | None = None) -> None:
+    """Rewrite .env keys in place: value=None removes the line, existing
+    keys update, new keys append. Preserves unrelated lines and comments."""
+    path = env_path or (REPO_ROOT / ".env")
+    lines = path.read_text().splitlines() if path.is_file() else []
+    remaining = dict(updates)
+    out = []
+    for line in lines:
+        key = line.split("=", 1)[0].strip() if "=" in line else None
+        if key in remaining:
+            value = remaining.pop(key)
+            if value is not None:
+                out.append(f"{key}={value}")
+            # None: drop the line
+        else:
+            out.append(line)
+    for key, value in remaining.items():
+        if value is not None:
+            out.append(f"{key}={value}")
+    path.write_text("\n".join(out) + "\n")
+    path.chmod(0o600)
+
+
 def allowed_project_dirs() -> list[Path]:
     """Project folders under PROJECTS_ROOT that match the allowlist."""
     if not PROJECTS_ROOT.is_dir():

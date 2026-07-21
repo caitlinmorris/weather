@@ -1,0 +1,209 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>we.ather settings</title>
+<style>
+  :root { color-scheme: dark; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0b0e14; color: #b8c0cc; padding: 18px 22px 26px;
+    font: 13px/1.6 ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  h1 { font-size: 13px; color: #7d8798; font-weight: normal; margin-bottom: 14px; }
+  section {
+    background: #0e1219; border: 1px solid #222a3a; border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 12px;
+  }
+  section h2 { font-size: 11px; color: #8b95a7; margin-bottom: 8px;
+               text-transform: lowercase; }
+  .hint { color: #566078; font-size: 11px; margin-top: 4px; }
+  label.row { display: flex; align-items: center; gap: 8px; margin: 4px 0;
+              cursor: pointer; }
+  input[type=text], input[type=password], select {
+    background: #131722; border: 1px solid #2e3648; border-radius: 5px;
+    color: #d5dde9; font: inherit; font-size: 12px; padding: 4px 8px;
+    width: 100%;
+  }
+  input.narrow { width: 130px; }
+  button {
+    background: none; border: 1px solid #2e3648; color: #9aa4b4;
+    border-radius: 5px; padding: 3px 12px; cursor: pointer; font: inherit;
+    font-size: 12px;
+  }
+  button:hover { border-color: #47506a; color: #dde3ec; }
+  button.primary { background: #24406b; border-color: #3c66a8; color: #eaf1fb;
+                   padding: 6px 20px; }
+  button.danger:hover { border-color: #a83c5c; color: #f0c0cf; }
+  .board { display: flex; gap: 6px; align-items: center; margin: 5px 0;
+           flex-wrap: wrap; }
+  .board input[type=text] { flex: 1; min-width: 90px; }
+  .consent { border-color: #3c5638; }
+  #saveRow { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+  #status { color: #6ee7a0; font-size: 12px; }
+  ul.plain { list-style: none; }
+  ul.plain li { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+</style>
+</head>
+<body>
+<h1>we.ather settings <span class="hint">— saving relaunches the app</span></h1>
+
+<section>
+  <h2>identity</h2>
+  <label class="row">person id
+    <input type="text" id="person" class="narrow" placeholder="lowercase name">
+  </label>
+  <label class="row">API key
+    <input type="password" id="apikey" placeholder="">
+  </label>
+  <div class="hint" id="keyhint"></div>
+</section>
+
+<section class="consent">
+  <h2>consent — what may be observed</h2>
+  <label class="row"><input type="checkbox" id="src_claude"> Claude Code sessions</label>
+  <ul class="plain" id="claudeProjects" style="margin-left:24px"></ul>
+  <label class="row" style="margin-top:8px"><input type="checkbox" id="src_warp"> Warp sessions</label>
+  <ul class="plain" id="warpFolders" style="margin-left:24px"></ul>
+  <div style="margin-left:24px"><button id="addWarp">choose a folder…</button></div>
+  <div class="hint">Only what you select here is ever read. Nothing is
+  pre-chosen for you.</div>
+</section>
+
+<section>
+  <h2>rooms (boards)</h2>
+  <div id="boards"></div>
+  <button id="addBoard">add a room…</button>
+  <div class="hint">Tokens are write-only: shown as ●●● when set; type to
+  replace. Tier "presence" shares only aliveness, no topics.</div>
+</section>
+
+<section>
+  <h2>tuning</h2>
+  <label class="row"><input type="checkbox" id="debug">
+    debug pace (60s cycles — costs more, less calm)</label>
+</section>
+
+<div id="saveRow">
+  <button class="primary" id="save">save &amp; relaunch</button>
+  <span id="status"></span>
+</div>
+
+<script>
+let S = null;
+
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  Object.assign(node, attrs);
+  children.forEach(c => node.append(c));
+  return node;
+}
+
+function renderClaudeProjects() {
+  const box = document.getElementById("claudeProjects");
+  box.innerHTML = "";
+  // A project is "covered" if any allowlist prefix matches it.
+  for (const name of S.claude_projects) {
+    const covered = S.claude_allowlist.some(p => name.startsWith(p));
+    const short = name.split("-").slice(-2).join("-");
+    const cb = el("input", { type: "checkbox", checked: covered });
+    cb.dataset.name = name;
+    box.append(el("li", {}, el("label", { className: "row" }, cb, short)));
+  }
+}
+
+function renderWarpFolders() {
+  const box = document.getElementById("warpFolders");
+  box.innerHTML = "";
+  S.warp_allowlist.forEach((path, i) => {
+    const rm = el("button", { textContent: "remove", className: "danger" });
+    rm.onclick = () => { S.warp_allowlist.splice(i, 1); renderWarpFolders(); };
+    box.append(el("li", {}, path, rm));
+  });
+}
+
+function renderBoards() {
+  const box = document.getElementById("boards");
+  box.innerHTML = "";
+  S.boards.forEach((b, i) => {
+    const name = el("input", { type: "text", value: b.name, placeholder: "room key" });
+    const url = el("input", { type: "text", value: b.url || "", placeholder: "relay url" });
+    const token = el("input", { type: "password", value: "",
+      placeholder: b.has_token ? "●●● (set — type to replace)" : "token" });
+    const tier = el("select", {},
+      el("option", { value: "topic", textContent: "topic",
+                     selected: b.tier !== "presence" }),
+      el("option", { value: "presence", textContent: "presence",
+                     selected: b.tier === "presence" }));
+    const rm = el("button", { textContent: "leave", className: "danger" });
+    rm.onclick = () => {
+      if (confirm(`Leave room '${b.name}'? Your state there ages out;` +
+                  ` re-joining needs the token again.`)) {
+        S.boards.splice(i, 1); renderBoards();
+      }
+    };
+    name.oninput = () => b.name = name.value;
+    url.oninput = () => b.url = url.value;
+    token.oninput = () => b.token = token.value;
+    tier.onchange = () => b.tier = tier.value;
+    box.append(el("div", { className: "board" }, name, url, token, tier, rm));
+  });
+}
+
+function collect() {
+  const sources = [];
+  if (document.getElementById("src_claude").checked) sources.push("claude_code");
+  if (document.getElementById("src_warp").checked) sources.push("warp");
+  const claude = [...document.querySelectorAll("#claudeProjects input")]
+    .filter(cb => cb.checked).map(cb => cb.dataset.name);
+  return {
+    person_id: document.getElementById("person").value,
+    api_key: document.getElementById("apikey").value,
+    sources,
+    claude_allowlist: claude,
+    warp_allowlist: S.warp_allowlist,
+    debug: document.getElementById("debug").checked,
+    boards: S.boards.map(b => ({
+      name: b.name, url: b.url, tier: b.tier, token: b.token || "",
+    })),
+  };
+}
+
+let booted = false;
+async function init() {
+  if (booted) return;
+  booted = true;
+  S = await window.pywebview.api.get_settings();
+  document.getElementById("person").value = S.person_id;
+  document.getElementById("keyhint").textContent = S.has_api_key
+    ? "key is set — leave blank to keep it" : "no key set yet";
+  document.getElementById("apikey").placeholder = S.has_api_key ? "●●●" : "sk-ant-…";
+  document.getElementById("src_claude").checked = S.sources.includes("claude_code");
+  document.getElementById("src_warp").checked = S.sources.includes("warp");
+  document.getElementById("debug").checked = S.debug;
+  renderClaudeProjects();
+  renderWarpFolders();
+  renderBoards();
+
+  document.getElementById("addWarp").onclick = async () => {
+    const folder = await window.pywebview.api.choose_warp_folder();
+    if (folder && !S.warp_allowlist.includes(folder)) {
+      S.warp_allowlist.push(folder);
+      renderWarpFolders();
+    }
+  };
+  document.getElementById("addBoard").onclick = () => {
+    S.boards.push({ name: "", url: "", tier: "topic", has_token: false });
+    renderBoards();
+  };
+  document.getElementById("save").onclick = async () => {
+    document.getElementById("status").textContent = "saving — relaunching…";
+    await window.pywebview.api.save_and_restart(collect());
+  };
+}
+
+window.addEventListener("pywebviewready", init);
+if (window.pywebview) init();
+</script>
+</body>
+</html>

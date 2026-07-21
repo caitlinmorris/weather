@@ -83,19 +83,35 @@ def main() -> None:
     worker = threading.Thread(target=watch.main, daemon=True)
     worker.start()
 
-    from presence.pipeline.config import boards
+    from presence.pipeline.config import boards, env_value
+    from presence.render.settings_api import SettingsApi, WIZARD_REQUIRED
 
+    api = SettingsApi()
     room_count = max(1, len(boards()))
     webview.create_window(
         "we.ather",
         url=OUT.as_uri() + "#live",
+        js_api=api,
         width=432,
         # stacked strips need vertical room: ~94px per additional board
         height=248 + 94 * (room_count - 1),
         on_top=True,
         resizable=True,
     )
-    webview.start()
+    if any(not env_value(k) for k in WIZARD_REQUIRED):
+        # First-run wizard: settings opens alongside the (empty) widget.
+        webview.start(api.open_settings)
+    else:
+        webview.start()
+
+    if api.restart_requested:
+        # execv keeps the PID, so the single-instance pidfile stays true —
+        # and settings changes apply themselves (the launch-time-config
+        # footgun, finally closed for the GUI path).
+        import sys
+
+        PID_FILE.unlink(missing_ok=True)
+        os.execv(sys.executable, [sys.executable, "-m", "presence.render.app"])
 
 
 if __name__ == "__main__":

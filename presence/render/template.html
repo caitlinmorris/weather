@@ -97,6 +97,7 @@
       <button id="key" title="toggle color key">key</button>
       <button id="theme" title="light / dark">◐</button>
       <button id="level" title="how much 'what' a hover reveals"></button>
+      <button id="gear" style="display:none" title="settings">⚙</button>
     </span>
   </div>
   <canvas id="field"></canvas>
@@ -470,7 +471,18 @@ function drawDotsView(t, now) {
 
 // --- shared frame loop ------------------------------------------------------------
 function draw(now) {
-  requestAnimationFrame(draw);
+  // Settings gear: only exists inside the app (pywebview provides the API).
+const gear = document.getElementById("gear");
+function armGear() {
+  if (window.pywebview) {
+    gear.style.display = "";
+    gear.onclick = () => window.pywebview.api.open_settings();
+  }
+}
+window.addEventListener("pywebviewready", armGear);
+armGear();
+
+requestAnimationFrame(draw);
   if (playing && !LIVE) {
     const dt = (now - lastFrame) / 1000;
     scrub.value = Math.min(1000, +scrub.value + (dt / PLAY_TOTAL) * 1000);
@@ -633,6 +645,17 @@ keyBtn.onclick = () => {
   renderKey();
 };
 renderKey();
+
+// Settings gear: only exists inside the app (pywebview provides the API).
+const gear = document.getElementById("gear");
+function armGear() {
+  if (window.pywebview) {
+    gear.style.display = "";
+    gear.onclick = () => window.pywebview.api.open_settings();
+  }
+}
+window.addEventListener("pywebviewready", armGear);
+armGear();
 
 requestAnimationFrame(draw);
 </script>
