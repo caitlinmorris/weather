@@ -33,15 +33,27 @@ SECRETS="${SECRETS%, }}"
 
 echo
 echo "— deploying board '$BOARD' to your Cloudflare account —"
-npx wrangler@latest deploy --config "$CONFIG"
+# tee keeps wrangler's output (and any first-run subdomain prompt) visible
+# while we capture the deployed URL for the .env lines below.
+DEPLOY_OUT=$(npx wrangler@latest deploy --config "$CONFIG" 2>&1 | tee /dev/stderr)
+URL=$(echo "$DEPLOY_OUT" | grep -o 'https://[a-zA-Z0-9.-]*\.workers\.dev' | head -1)
 echo "$SECRETS" | npx wrangler@latest secret put RELAY_TOKENS --config "$CONFIG"
+
+if [ -z "$URL" ]; then
+  echo
+  echo "WARNING: couldn't find a workers.dev URL in wrangler's output above."
+  echo "The deploy may not have finished (first deploy asks you to register"
+  echo "a workers.dev subdomain). Re-run this to see the URL (safe, keeps"
+  echo "your tokens):  npx wrangler@latest deploy --config $CONFIG"
+  URL="https://we-ather-$BOARD.<your-subdomain>.workers.dev"
+fi
 
 KEY=$(echo "$BOARD" | tr 'a-z-' 'A-Z_')
 echo
-echo "board '$BOARD' is live at the workers.dev URL printed above."
+echo "board '$BOARD' is live at: $URL"
 echo "each member's .env needs (with THEIR token from above):"
 echo "  PRESENCE_BOARDS=...existing...,$BOARD"
-echo "  RELAY_URL_$KEY=https://we-ather-$BOARD.<your-subdomain>.workers.dev"
+echo "  RELAY_URL_$KEY=$URL"
 echo "  RELAY_TOKEN_$KEY=<their token>"
 echo "  PRESENCE_TIER_$KEY=topic"
 echo "then RESTART their app, and verify with:"
