@@ -21,6 +21,9 @@ CONFIG="$WORKDIR/wrangler.$BOARD.toml"
 sed "s/BOARDNAME/$BOARD/" "$WORKDIR/wrangler.toml" > "$CONFIG"
 
 # Mint one token per member; hashes to the relay secret, tokens to humans.
+# Hashes (never tokens) also persist to a local file, so an interrupted run
+# can finish the secret upload without re-minting everyone's tokens.
+HASHFILE="$WORKDIR/hashes.$BOARD.json"
 SECRETS="{"
 for MEMBER in "$@"; do
   echo
@@ -30,21 +33,31 @@ for MEMBER in "$@"; do
   SECRETS="$SECRETS\"$MEMBER\": \"$HASH\", "
 done
 SECRETS="${SECRETS%, }}"
+echo "$SECRETS" > "$HASHFILE"
+chmod 600 "$HASHFILE"
 
 echo
 echo "— deploying board '$BOARD' to your Cloudflare account —"
 # tee keeps wrangler's output (and any first-run subdomain prompt) visible
 # while we capture the deployed URL for the .env lines below.
-DEPLOY_OUT=$(npx wrangler@latest deploy --config "$CONFIG" 2>&1 | tee /dev/stderr)
+if ! DEPLOY_OUT=$(npx wrangler@latest deploy --config "$CONFIG" 2>&1 | tee /dev/stderr); then
+  echo
+  echo "DEPLOY FAILED (often: first deploy needs a workers.dev subdomain"
+  echo "registered — wrangler prompts for it). Your tokens above are still"
+  echo "good. To finish WITHOUT re-running this script (which would re-mint"
+  echo "them), run these two commands once deploy succeeds:"
+  echo "  npx wrangler@latest deploy --config $CONFIG"
+  echo "  npx wrangler@latest secret put RELAY_TOKENS --config $CONFIG < $HASHFILE"
+  exit 1
+fi
 URL=$(echo "$DEPLOY_OUT" | grep -o 'https://[a-zA-Z0-9.-]*\.workers\.dev' | head -1)
-echo "$SECRETS" | npx wrangler@latest secret put RELAY_TOKENS --config "$CONFIG"
+npx wrangler@latest secret put RELAY_TOKENS --config "$CONFIG" < "$HASHFILE"
 
 if [ -z "$URL" ]; then
   echo
   echo "WARNING: couldn't find a workers.dev URL in wrangler's output above."
-  echo "The deploy may not have finished (first deploy asks you to register"
-  echo "a workers.dev subdomain). Re-run this to see the URL (safe, keeps"
-  echo "your tokens):  npx wrangler@latest deploy --config $CONFIG"
+  echo "Re-run the deploy to see it (safe, keeps your tokens):"
+  echo "  npx wrangler@latest deploy --config $CONFIG"
   URL="https://we-ather-$BOARD.<your-subdomain>.workers.dev"
 fi
 

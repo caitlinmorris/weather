@@ -30,3 +30,6 @@ presence/relay/worker/wrangler.*.toml
 
 # built kits contain real keys — never commit
 dist/
+
+# per-board token-hash files (hashes only, never tokens)
+presence/relay/worker/hashes.*.json
