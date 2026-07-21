@@ -70,7 +70,9 @@ members, seeing only the low-resolution shared states).
    a free Cloudflare account (no card; wrangler opens a browser login).
 2. Install your own client: `./install.sh` (it walks you through your
    API key and — the important moment — WHICH project folders it may
-   observe; nothing outside your picks is ever read).
+   observe; nothing outside your picks is ever read). When it asks for
+   a relay URL, **leave it empty** — your board doesn't exist yet; step
+   3 creates it and step 4 adds its lines to `.env`.
 3. Create your board — name it after the ROOM, not a person ("studio",
    "thesis", "homies"): the name is config plumbing; displays show rooms
    as "with <members>". This also mints member tokens (agree lowercase
