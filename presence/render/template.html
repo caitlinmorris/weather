@@ -357,6 +357,9 @@ function drawFieldView(t, now) {
 
   for (const strip of strips) {
     if (strip.label) {
+      // Reset: the previous strip's last pixel leaves its alpha behind,
+      // which was quietly dimming every label after the first.
+      ctx.globalAlpha = 1;
       ctx.fillStyle = T.label;
       ctx.font = "10px ui-monospace, Menlo, monospace";
       ctx.textAlign = "left";
@@ -469,9 +472,7 @@ function drawDotsView(t, now) {
   return hovered;
 }
 
-// --- shared frame loop ------------------------------------------------------------
-function draw(now) {
-  // Settings gear: only exists inside the app (pywebview provides the API).
+// Settings gear: only exists inside the app (pywebview provides the API).
 const gear = document.getElementById("gear");
 function armGear() {
   if (window.pywebview) {
@@ -482,7 +483,9 @@ function armGear() {
 window.addEventListener("pywebviewready", armGear);
 armGear();
 
-requestAnimationFrame(draw);
+// --- shared frame loop ------------------------------------------------------------
+function draw(now) {
+  requestAnimationFrame(draw);
   if (playing && !LIVE) {
     const dt = (now - lastFrame) / 1000;
     scrub.value = Math.min(1000, +scrub.value + (dt / PLAY_TOTAL) * 1000);
@@ -560,9 +563,11 @@ requestAnimationFrame(draw);
     tip.style.left = Math.min(box.left + hovered.X + 16, innerWidth - 296) + "px";
     tip.style.top = (box.top + hovered.Y - 10) + "px";
     let html = "";
-    // Identity rules: dots view names its slots inherently; the field stays
-    // anonymous unless the dial is at topic+ (L.name).
-    const who = view === "dots" ? hovered.person : (L.name ? hovered.s.person : null);
+    // Identity rule (Caitlin, 2026-07-21): a hover is deliberate inspection,
+    // so the PERSON is always attributed; the dial governs how much "what"
+    // (micro/tags/gist) comes with it. Board provenance stays hidden —
+    // rooms are plumbing; the person is the meaningful source.
+    const who = view === "dots" ? hovered.person : hovered.s.person;
     if (who) html += '<span class="who">' + esc(who) + "</span>";
     if (L.micro && microOf(hovered.s))
       html += (who ? " · " : "") + '<span class="micro">' + esc(microOf(hovered.s)) + "</span>";
