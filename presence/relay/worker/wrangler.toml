@@ -1,0 +1,15 @@
+# we.ather board on Cloudflare Workers (free tier; no credit card).
+# make_board_cf.sh substitutes the board name and deploys. One deployment
+# = one board, owned by its host.
+
+name = "we-ather-BOARDNAME"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+[[durable_objects.bindings]]
+name = "BOARD"
+class_name = "Board"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Board"]

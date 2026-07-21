@@ -23,3 +23,7 @@ v1_outputs*.md
 
 # Personal fork ideas — deliberately not part of this project
 fork-notes/
+
+# per-board wrangler configs are generated
+presence/relay/worker/wrangler.*.toml
+!presence/relay/worker/wrangler.toml

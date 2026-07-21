@@ -167,9 +167,11 @@ tracks the social structure — no one operates a room they're not in").
 apps (~$2-3/mo each; participants never touch Fly — they hold only a
 token), with **operator disclosure** as a consent rule: every member is
 told who hosts their room. Board creation: `presence/relay/make_board.sh`.
-New parked item: a **free hosting kit** (Cloudflare Worker + KV port,
-~1 day) for when a second host materializes — kills cost as a barrier to
-anyone hosting, and durable KV ends restart ring-wipes. Never: shared Fly
+**Free hosting kit BUILT 2026-07-21** (presence/relay/worker/ +
+make_board_cf.sh + docs/self-hosting.md): Cloudflare Worker + Durable
+Object, same HTTP contract as the Fly relay (interchangeable), $0/no-card
+hosting, durable storage ends restart ring-wipes. Any member can now be a
+sovereign host; nothing routes through anyone else. Never: shared Fly
 account credentials.
 
 *(original analysis kept below)*
