@@ -65,13 +65,13 @@ elif [ -f .env ]; then
 else
   echo
   echo "Your short name must EXACTLY match the name your relay token was"
-  echo "registered under (ask the study owner if unsure)."
+  echo "registered under (ask Caitlin — or whoever sent you this — if unsure)."
   read -r -p "your short name (lowercase, e.g. dan): " PERSON
-  read -r -p "Anthropic API key (starts sk-ant-, from the study owner): " APIKEY
+  read -r -p "Anthropic API key (starts sk-ant-, from whoever sent you this): " APIKEY
   read -r -p "relay URL (https://..., or leave empty for local-only): " RELAYURL
   RELAYTOK=""
   if [ -n "$RELAYURL" ]; then
-    read -r -p "your relay token (from the study owner): " RELAYTOK
+    read -r -p "your relay token (from your board's host): " RELAYTOK
   fi
 
   echo
