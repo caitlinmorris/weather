@@ -87,6 +87,32 @@ they never touch Cloudflare. Read `docs/pilot-kit.md` for the widget
 tour and `docs/security-model.md` (one page) for exactly what leaves a
 machine and what a relay compromise could and couldn't expose.
 
+## Worked example: Matt's board (provider keys + sovereign hosting)
+
+Matt wants a board with three friends; Caitlin pays for extraction but
+has no part in his room. The credential rule that makes this make sense:
+**API keys follow people; relay tokens follow (person, board).**
+
+- **Caitlin (provider, ~20 min once):** creates ONE Console workspace
+  ("matt-circle", one spend cap), mints FOUR keys inside it (per-person
+  revocation and usage visibility; a leaked kit identifies itself), runs
+  `./make_kit.sh <person>` four times (no board argument), sends each
+  person their kit privately. That is the entirety of her involvement —
+  she cannot see the board, its members, or its existence.
+- **Matt (host, ~20 min once):** gets his kit, `./install.sh`, then
+  creates the room on his own free Cloudflare account:
+  `./presence/relay/make_board_cf.sh <board> matt ana ben cara`
+  — this mints the four relay tokens and prints each member's four .env
+  lines. He sends each friend their token + lines privately.
+- **Each member (~10 min):** unzip kit → `./install.sh` (one question:
+  which folders may be observed) → append the four board lines from Matt
+  to `.env` → restart → `python -m presence.pipeline.selftest` → all
+  green → `python -m presence.render.app`.
+
+Everyone receives exactly two private messages: a kit from the provider,
+board lines from the host. If a member later wants a second board, they
+need a new TOKEN (from that board's host) but not a new key.
+
 ## Notes for hosts
 
 - **One deployment = one board.** A second room = run the script again
