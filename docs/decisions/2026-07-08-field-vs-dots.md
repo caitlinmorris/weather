@@ -27,3 +27,7 @@ which *view* do people miss?
 
 **Known limits:** At N=2 anonymity is inference-thin ("colors that aren't
 mine are yours"). Field view reduces passive attribution only.
+
+**UI note 2026-07-21:** the dots view lost its toggle — identity×status
+is not offered to users at all anymore; it survives as a debug-only URL
+mode (`?view=dots`) for design comparisons.

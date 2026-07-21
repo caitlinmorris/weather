@@ -94,7 +94,6 @@
     <span class="title">we.ather</span>
     <span class="controls">
       <button id="rooms" style="display:none" title="stacked / isolate a room / fused"></button>
-      <button id="view" title="field: anonymous weather · dots: per-person"></button>
       <button id="key" title="toggle color key">key</button>
       <button id="theme" title="light / dark">◐</button>
       <button id="level" title="how much 'what' a hover reveals"></button>
@@ -159,13 +158,14 @@ const LEVELS = [
   { key: "topic", micro: true, tags: false, gist: false, name: false },
   { key: "topic+", micro: true, tags: true, gist: true, name: true },
 ];
-const VIEWS = ["field", "dots"];
-
 const prefs = window.localStorage;
 let level = Math.min(+(prefs.getItem("presence.level") ?? 1), LEVELS.length - 1);
 let theme = prefs.getItem("presence.theme") === "light" ? "light" : "dark";
 let showKey = prefs.getItem("presence.key") === "1";
-let view = VIEWS.includes(prefs.getItem("presence.view")) ? prefs.getItem("presence.view") : "field";
+// The dots view is DEBUG-ONLY (?view=dots in the URL): identity-x-status
+// is the surveillance grammar the field replaced; it gets no button.
+const view = new URLSearchParams(location.search).get("view") === "dots"
+  ? "dots" : "field";
 
 // Rooms (boards) normalized once; the rooms dial cycles stacked -> fused
 // -> each isolated room. Single-room setups get no dial.
@@ -245,7 +245,6 @@ const scrub = document.getElementById("scrub"), clock = document.getElementById(
 const playBtn = document.getElementById("play"), tip = document.getElementById("tip");
 const levelBtn = document.getElementById("level"), themeBtn = document.getElementById("theme");
 const keyBtn = document.getElementById("key"), keyRow = document.getElementById("keyrow");
-const viewBtn = document.getElementById("view");
 let playing = false, lastFrame = 0, mouse = { x: -1, y: -1 };
 
 if (LIVE) {
@@ -574,20 +573,13 @@ function setFieldHeight() {
   resize();
 }
 
-function setView(name) {
-  view = name;
-  viewBtn.textContent = "view: " + name;
-  prefs.setItem("presence.view", name);
-  setFieldHeight();
-}
-
 const roomsBtn = document.getElementById("rooms");
 function setRoomMode(mode) {
   roomMode = mode;
   prefs.setItem("presence.rooms", mode);
   const room = ROOMS.find(r => r.key === mode);
-  roomsBtn.textContent = "rooms: " + (mode === "stacked" ? "stacked"
-    : mode === "fused" ? "fused" : (room ? room.label : mode));
+  roomsBtn.textContent = mode === "stacked" ? "stacked"
+    : mode === "fused" ? "fused" : (room ? room.label : mode);
   setFieldHeight();
 }
 if (ROOM_MODES.length > 1) {
@@ -596,8 +588,6 @@ if (ROOM_MODES.length > 1) {
     setRoomMode(ROOM_MODES[(ROOM_MODES.indexOf(roomMode) + 1) % ROOM_MODES.length]);
 }
 setRoomMode(roomMode);
-viewBtn.onclick = () => setView(view === "field" ? "dots" : "field");
-setView(view);
 
 function setTheme(name) {
   theme = name;
