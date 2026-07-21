@@ -87,6 +87,9 @@ the cohort still waits for Phase C gates.
   written specs after that.
 - Explicitly parked: packaging (pipx, one-line installers, .app). Revisit
   only if install friction is what an actual participant stumbles on.
+- Parked (requested 2026-07-21): a local settings GUI for boards/folders/
+  consent so daily management leaves the command line — the label_web
+  localhost-page pattern is the natural shape when it's time.
 
 **Phase C — cohort onboarding (~2–3 weeks out):** lands on the original
 week-7 pilot timing, but with a measured extractor, an invite flow that

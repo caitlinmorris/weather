@@ -80,7 +80,9 @@ def test_composite_merge_tags_boards_and_dedups(tmp_path, monkeypatch):
     assert labels["dan"] == "with dan" and labels["lara"] == "with lara"
     people = {p["person"]: p for p in data}
     assert set(people) == {"caitlin", "dan", "lara"}
-    # Self appears on both boards but dedups to one state by timestamp.
-    assert len(people["caitlin"]["states"]) == 1
+    # Self keeps a copy PER BOARD (stacked strips show each room whole);
+    # fused view overlaps the duplicates pixel-identically.
+    assert len(people["caitlin"]["states"]) == 2
+    assert {s["board"] for s in people["caitlin"]["states"]} == {"dan", "lara"}
     assert people["dan"]["states"][0]["board"] == "dan"
     assert people["lara"]["states"][0]["board"] == "lara"

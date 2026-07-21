@@ -93,6 +93,7 @@
   <div id="topbar">
     <span class="title">we.ather</span>
     <span class="controls">
+      <button id="rooms" style="display:none" title="stacked / isolate a room / fused"></button>
       <button id="view" title="field: anonymous weather · dots: per-person"></button>
       <button id="key" title="toggle color key">key</button>
       <button id="theme" title="light / dark">◐</button>
@@ -165,6 +166,16 @@ let level = Math.min(+(prefs.getItem("presence.level") ?? 1), LEVELS.length - 1)
 let theme = prefs.getItem("presence.theme") === "light" ? "light" : "dark";
 let showKey = prefs.getItem("presence.key") === "1";
 let view = VIEWS.includes(prefs.getItem("presence.view")) ? prefs.getItem("presence.view") : "field";
+
+// Rooms (boards) normalized once; the rooms dial cycles stacked -> fused
+// -> each isolated room. Single-room setups get no dial.
+const STRIP_H = 80, STRIP_LABEL_H = 14;
+const ROOMS = BOARDS.map(b =>
+  typeof b === "string" ? { key: b, label: "with " + b } : b);
+const ROOM_MODES = ROOMS.length > 1
+  ? ["stacked", "fused", ...ROOMS.map(r => r.key)] : ["fused"];
+let roomMode = ROOM_MODES.includes(prefs.getItem("presence.rooms"))
+  ? prefs.getItem("presence.rooms") : ROOM_MODES[0];
 
 DATA.forEach(p => {
   p.states.forEach(s => {
@@ -301,63 +312,90 @@ let hoverBlocks = [];   // field view hit targets, rebuilt each frame
 function drawFieldView(t, now) {
   const T = THEMES[theme];
   const W = field.clientWidth, H = field.clientHeight;
-  const cols = Math.floor(W / CELL), rows = Math.floor(H / CELL);
+  const cols = Math.floor(W / CELL);
   const slotMs = (FIELD_WINDOW_H * 36e5) / cols;
   hoverBlocks = [];
 
-  // Ambient noise: keyed to ABSOLUTE time buckets so texture scrolls with
-  // the window instead of re-rolling. Dim, neutral, sparse.
-  ctx.fillStyle = T.noise;
-  for (let c = 0; c < cols; c++) {
-    const bucket = Math.floor((t - (cols - 1 - c) * slotMs) / slotMs);
-    for (let r = 0; r < rows; r++) {
-      const rnd = mulberry32(hash(`n${bucket}·${r}`))();
-      if (rnd < NOISE_DENSITY) {
-        ctx.globalAlpha = 0.05 + 0.05 * rnd / NOISE_DENSITY;
-        ctx.fillRect(c * CELL, r * CELL, CELL - 1, CELL - 1);
-      }
-    }
+  // Strips: stacked = one per room (everything visible, separated — no
+  // switching required); isolate = one room fills the field (the most
+  // referent-true view); fused = the original blend. Topic lanes hash
+  // globally, so a topic sits at the same relative height across strips.
+  let strips;
+  if (roomMode === "stacked" && ROOMS.length > 1) {
+    strips = ROOMS.map((room, i) => ({
+      label: room.label,
+      yOff: i * (STRIP_H + STRIP_LABEL_H) + STRIP_LABEL_H,
+      rows: Math.floor(STRIP_H / CELL),
+      match: s => s.board === room.key,
+    }));
+  } else if (roomMode !== "fused" && roomMode !== "stacked") {
+    const room = ROOMS.find(r => r.key === roomMode);
+    strips = [{
+      label: room ? room.label : roomMode,
+      yOff: STRIP_LABEL_H,
+      rows: Math.floor((H - STRIP_LABEL_H) / CELL),
+      match: s => s.board === roomMode,
+    }];
+  } else {
+    strips = [{ label: "", yOff: 0, rows: Math.floor(H / CELL), match: () => true }];
   }
 
-  // Activity blobs: column = when, lane = topic (recurring work recurs at
-  // the same height), hue = phase. No identity anywhere at this layer.
-  for (const s of ALL_STATES) {
-    const ageH = (t - s.ms) / 36e5;
-    if (ageH < 0 || ageH > FIELD_WINDOW_H) continue;
-    const col = cols - 1 - Math.floor((ageH / FIELD_WINDOW_H) * cols);
-    const lane = 2 + Math.floor(hash(s.tags[0] || s.gist || "?") * (rows - 6));
-    const hue = T.hues[s.phase] || T.hues.unknown;
-    const fade = 0.3 + 0.7 * (1 - ageH / FIELD_WINDOW_H);
-    const rnd = mulberry32(hash(s.person + s.t));
+  for (const strip of strips) {
+    if (strip.label) {
+      ctx.fillStyle = T.label;
+      ctx.font = "10px ui-monospace, Menlo, monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(strip.label, 4, strip.yOff - 4);
+    }
 
-    for (let dy = -2; dy <= 2; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
-        const weight = 1 - (Math.abs(dx) * 0.35 + Math.abs(dy) * 0.28);
-        if (rnd() > weight) continue;
-        const c = col + dx, r = lane + dy;
-        if (c < 0 || c >= cols || r < 0 || r >= rows) continue;
-        const shimmer = 1 + 0.08 * Math.sin(now / 900 + hash(`${c},${r}`) * 40);
-        ctx.globalAlpha = Math.min(1, fade * weight * shimmer);
-        ctx.fillStyle = hue;
-        ctx.fillRect(c * CELL, r * CELL, CELL - 1, CELL - 1);
+    ctx.fillStyle = T.noise;
+    for (let c = 0; c < cols; c++) {
+      const bucket = Math.floor((t - (cols - 1 - c) * slotMs) / slotMs);
+      for (let r = 0; r < strip.rows; r++) {
+        const rnd = mulberry32(hash(`n${bucket}\u00b7${r}\u00b7${strip.label}`))();
+        if (rnd < NOISE_DENSITY) {
+          ctx.globalAlpha = 0.05 + 0.05 * rnd / NOISE_DENSITY;
+          ctx.fillRect(c * CELL, strip.yOff + r * CELL, CELL - 1, CELL - 1);
+        }
       }
     }
 
-    // Fresh events crystallize: a larger outlined block, the ONLY hover
-    // target — old weather is deliberately not interrogable (hover-anywhere
-    // read as surveillance; see field-vs-dots memo). Blocks dissolve into
-    // plain cloud after EVENT_FRESH_H.
-    if (s.fresh && ageH <= EVENT_FRESH_H) {
-      const x = Math.min(col, cols - 2) * CELL, y = Math.min(lane, rows - 2) * CELL;
-      const size = CELL * 2 - 1;
-      ctx.globalAlpha = Math.min(1, fade + 0.15);
-      ctx.fillStyle = hue;
-      ctx.fillRect(x, y, size, size);
-      ctx.globalAlpha = 0.85;
-      ctx.strokeStyle = T.outline;
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
-      hoverBlocks.push({ x, y, w: size, h: size, s });
+    for (const s of ALL_STATES) {
+      if (!strip.match(s)) continue;
+      const ageH = (t - s.ms) / 36e5;
+      if (ageH < 0 || ageH > FIELD_WINDOW_H) continue;
+      const col = cols - 1 - Math.floor((ageH / FIELD_WINDOW_H) * cols);
+      const lane = 2 + Math.floor(hash(s.tags[0] || s.gist || "?") * (strip.rows - 4));
+      const hue = T.hues[s.phase] || T.hues.unknown;
+      const fade = 0.3 + 0.7 * (1 - ageH / FIELD_WINDOW_H);
+      const rnd = mulberry32(hash(s.person + s.t));
+
+      for (let dy = -2; dy <= 2; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const weight = 1 - (Math.abs(dx) * 0.35 + Math.abs(dy) * 0.28);
+          if (rnd() > weight) continue;
+          const c = col + dx, r = lane + dy;
+          if (c < 0 || c >= cols || r < 0 || r >= strip.rows) continue;
+          const shimmer = 1 + 0.08 * Math.sin(now / 900 + hash(`${c},${r}`) * 40);
+          ctx.globalAlpha = Math.min(1, fade * weight * shimmer);
+          ctx.fillStyle = hue;
+          ctx.fillRect(c * CELL, strip.yOff + r * CELL, CELL - 1, CELL - 1);
+        }
+      }
+
+      if (s.fresh && ageH <= EVENT_FRESH_H) {
+        const x = Math.min(col, cols - 2) * CELL;
+        const y = strip.yOff + Math.min(lane, strip.rows - 2) * CELL;
+        const size = CELL * 2 - 1;
+        ctx.globalAlpha = Math.min(1, fade + 0.15);
+        ctx.fillStyle = hue;
+        ctx.fillRect(x, y, size, size);
+        ctx.globalAlpha = 0.85;
+        ctx.strokeStyle = T.outline;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
+        hoverBlocks.push({ x, y, w: size, h: size, s });
+      }
     }
   }
   ctx.globalAlpha = 1;
@@ -369,6 +407,7 @@ function drawFieldView(t, now) {
 }
 
 // --- dots view ---------------------------------------------------------------------
+
 function slotX(i) {
   const w = field.clientWidth, pad = 46, n = DATA.length;
   return n === 1 ? w / 2 : pad + (i * (w - 2 * pad)) / (n - 1);
@@ -447,10 +486,8 @@ function draw(now) {
   // labeled by who's in them, never by config keys.
   // Tolerate builder/template version skew (a running app rebuilds with
   // old code against this fresh template): normalize plain-string boards.
-  const boardList = BOARDS.map(b =>
-    typeof b === "string" ? { key: b, label: "with " + b } : b);
-  const boardNames = boardList.length
-    ? boardList
+  const boardNames = ROOMS.length
+    ? ROOMS
     : [...new Set(ALL_STATES.map(s => s.board).filter(Boolean))]
         .map(k => ({ key: k, label: k }));
   let weather;
@@ -528,11 +565,37 @@ function setLevel(n) {
 levelBtn.onclick = () => setLevel((level + 1) % LEVELS.length);
 setLevel(level);
 
+function setFieldHeight() {
+  const stacked = view === "field" && roomMode === "stacked" && ROOMS.length > 1;
+  field.style.height = (stacked
+    ? ROOMS.length * (STRIP_H + STRIP_LABEL_H)
+    : (view === "field" && roomMode !== "fused" && ROOMS.length > 1
+       ? 92 + STRIP_LABEL_H : 92)) + "px";
+  resize();
+}
+
 function setView(name) {
   view = name;
   viewBtn.textContent = "view: " + name;
   prefs.setItem("presence.view", name);
+  setFieldHeight();
 }
+
+const roomsBtn = document.getElementById("rooms");
+function setRoomMode(mode) {
+  roomMode = mode;
+  prefs.setItem("presence.rooms", mode);
+  const room = ROOMS.find(r => r.key === mode);
+  roomsBtn.textContent = "rooms: " + (mode === "stacked" ? "stacked"
+    : mode === "fused" ? "fused" : (room ? room.label : mode));
+  setFieldHeight();
+}
+if (ROOM_MODES.length > 1) {
+  roomsBtn.style.display = "";
+  roomsBtn.onclick = () =>
+    setRoomMode(ROOM_MODES[(ROOM_MODES.indexOf(roomMode) + 1) % ROOM_MODES.length]);
+}
+setRoomMode(roomMode);
 viewBtn.onclick = () => setView(view === "field" ? "dots" : "field");
 setView(view);
 

@@ -206,7 +206,24 @@ impossible under this design. Build priority raised accordingly.)*
 - **Forced by:** onboarding more than ~2 more people; the manual token
   dance and name-match scaffolding don't survive a cohort evening.
 
-### D3. Composite view — DECIDED 2026-07-15 (built); provenance REVISED 2026-07-21
+### D3. Composite view — DECIDED 2026-07-15; REVISED twice by lived use
+
+**Third revision (2026-07-21, user feedback from both pilot members):**
+blend-by-default replaced by **stacked strips** — one per room, each with
+its membership label and ≥80px of cloud space (window grows instead of
+strips compressing), everything visible in one glance. A persisted
+`rooms:` dial cycles stacked → fused → each-room-isolated; the isolated
+view is noted as the most referent-true view in the system (its members
+see exactly the same thing). Self renders per-room in stacked view;
+fused overlaps the copies pixel-identically. Topic lanes hash globally,
+so themes align in height across strips — cross-room resonance with
+zero data crossing. Users asked for exactly this ("isolate specific
+boards, with maybe an all-together fusion"); the ambient principle held
+by making stacked (not tabs) the default: nothing requires switching.
+
+*(second revision below)*
+
+### D3 (earlier). Provenance revision 2026-07-21
 
 Boards paint one field; weather lines strictly per-board. **Lived use
 revised the provenance design:** "via <board>" hover labels read as

@@ -83,11 +83,15 @@ def main() -> None:
     worker = threading.Thread(target=watch.main, daemon=True)
     worker.start()
 
+    from presence.pipeline.config import boards
+
+    room_count = max(1, len(boards()))
     webview.create_window(
         "we.ather",
         url=OUT.as_uri() + "#live",
         width=432,
-        height=248,
+        # stacked strips need vertical room: ~94px per additional board
+        height=248 + 94 * (room_count - 1),
         on_top=True,
         resizable=True,
     )

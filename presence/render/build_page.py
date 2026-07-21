@@ -45,7 +45,10 @@ def group_cache_data() -> tuple[list[dict], list[str]] | None:
                 entry["person_id"], {"person": entry["person_id"], "states": {}}
             )
             for s in entry.get("states", []):
-                person["states"].setdefault(s["updated_at"], {
+                # Per-board copies: in stacked view each room shows its
+                # own members (including the viewer); in fused view
+                # duplicates overlap pixel-identically (seeded positions).
+                person["states"].setdefault(board + "|" + s["updated_at"], {
                     "t": s["updated_at"],
                     "gist": s.get("topic_gist", ""),
                     "micro": s.get("topic_micro", ""),
