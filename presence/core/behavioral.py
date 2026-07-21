@@ -12,17 +12,28 @@ model calls, no clocks.
 
 from __future__ import annotations
 
+import re as _re
+
 from presence.pipeline.transcript_parser import TranscriptEvent
 
-# Ruling A1: failure = error text / FAILED / nonzero exit — EXCEPT the bare
-# word "error" appearing in prose without an error signal. Translation:
-# structured markers only; "error:" (compiler-style, with colon) kept as
-# structured, bare "error" dropped. [Colon distinction = translator choice,
-# flagged.]
-FAILURE_MARKERS = ("error:", "failed", "failure", "traceback",
-                   "exit 1", "exit 2", "fatal")
+# Ruling A1: failure = error text / FAILED / nonzero exit — EXCEPT failure
+# VOCABULARY appearing as prose/content. Translation (patched 2026-07-21
+# after content-word false positives — sessions ABOUT failure detection
+# read as failing): structured PATTERNS only, never bare substrings.
+# [Flagged as translator refinement #9.]
+_FAILURE_PATTERNS = (
+    _re.compile(r"^(FAILED|ERROR)\b", _re.M),          # pytest-style lines
+    _re.compile(r"\b\d+ (failed|errors?)\b"),          # "1 failed, 55 passed"
+    _re.compile(r"Traceback \(most recent call last\)"),
+    _re.compile(r"\bexit [1-9]\d*\b"),                 # shell/Warp exits
+    _re.compile(r"\bfatal:", _re.I),                    # git-style
+    _re.compile(r"\berror:", _re.I),                    # compiler-style (flag #1)
+)
 
-import re as _re
+
+def _looks_failed(text: str) -> bool:
+    return any(p.search(text) for p in _FAILURE_PATTERNS)
+
 
 
 def _is_interrupted(event: TranscriptEvent) -> bool:
@@ -47,9 +58,11 @@ def _is_failure(event: TranscriptEvent) -> bool:
     if r is None or r.interrupted:  # ruling A2: interrupted is NEITHER
         return False
     if r.stderr.strip():
-        return True
-    tail = r.stdout[-400:].lower()
-    return any(marker in tail for marker in FAILURE_MARKERS)
+        # stderr is a failure only in failure SHAPE: structured markers,
+        # or the classic all-output-on-stderr pattern. Warnings and
+        # notices on stderr are not failures. [refinement #9]
+        return _looks_failed(r.stderr) or not r.stdout.strip()
+    return _looks_failed(r.stdout[-800:])
 
 
 def _is_success(event: TranscriptEvent) -> bool:
@@ -177,4 +190,9 @@ def hint_block(events: list[TranscriptEvent]) -> str:
     mood = agitation(events)
     if mood is not None:
         parts.append(f"prompt_rhythm: {mood}")
-    return "; ".join(parts) if parts else "quiet window — nothing to classify"
+    if not parts:
+        return "quiet window — nothing to classify"
+    # Scope note: keeps mechanical friction from bleeding into PHASE,
+    # which should follow the narration. [translator patch, flagged]
+    return ("; ".join(parts)
+            + " (mechanical friction informs momentum; phase follows the narration)")

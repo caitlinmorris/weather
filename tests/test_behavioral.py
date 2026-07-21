@@ -34,9 +34,31 @@ def flat(*groups):
 
 def test_a1_prose_error_is_not_failure():
     ok = flat(tool(stdout="the error handling chapter looks good"))
-    bad = flat(tool(stdout="build FAILED"), tool(stderr="exit 1"))
+    bad = flat(tool(stdout="=== 1 failed, 55 passed ==="), tool(stderr="exit 1"))
     assert error_frequency(ok) == 0.0
     assert error_frequency(flat(ok, bad)) == 2 / 3
+
+
+def test_refinement9_failure_vocabulary_as_content_is_not_failure():
+    # Sessions ABOUT failure detection must not read as failing: grepped
+    # code and prose containing the words are content, not signal.
+    meta = flat(
+        tool(stdout="behavioral.py: def failure_streak(events)... FAILURE_MARKERS"),
+        tool(stdout="docs mention error handling and failure modes throughout"),
+        tool(stdout="committed: momentum stops lying about failures"),
+    )
+    assert error_frequency(meta) == 0.0
+    # But structured signals still fire:
+    real = flat(tool(stdout="FAILED tests/test_x.py::test_y - assert 1 == 2"))
+    assert error_frequency(flat(meta, real)) == 0.25
+
+
+def test_refinement9_stderr_warnings_are_not_failures():
+    # pip notices / git progress on stderr with real stdout: not failures.
+    warn = flat(tool(stdout="installed 3 packages", stderr="[notice] new pip available"))
+    assert error_frequency(warn) == 0.0
+    # stderr-only output (classic failure shape) still is:
+    assert error_frequency(flat(tool(stderr="boom, no such file"))) == 1.0
 
 
 # --- ruling A2: interrupted is neither ----------------------------------------------
