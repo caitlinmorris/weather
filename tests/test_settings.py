@@ -52,3 +52,28 @@ def test_settings_to_env_key_only_when_typed():
     assert updates["ANTHROPIC_API_KEY"] == "sk-new"
     assert updates["PRESENCE_DEBUG"] is None
     assert updates["PRESENCE_BOARDS"] is None
+
+
+def test_invite_rejects_placeholder_names():
+    import pytest
+    from presence.relay.invite import invite
+
+    with pytest.raises(RuntimeError, match="invalid name"):
+        invite("anyboard", "<Friend>")
+
+
+def test_env_lines_paste_ready():
+    from presence.relay.invite import env_lines
+
+    board = {"name": "art-club", "url": "https://x.workers.dev", "tier": "presence"}
+    lines = env_lines(board, "tok123")
+    assert "RELAY_URL_ART_CLUB=https://x.workers.dev" in lines
+    assert "RELAY_TOKEN_ART_CLUB=tok123" in lines
+    assert "PRESENCE_TIER_ART_CLUB=presence" in lines
+
+
+def test_board_backend_none_for_foreign_hosts():
+    from presence.relay.invite import board_backend
+
+    assert board_backend({"name": "x", "url": "https://evil.example.com"}) is None
+    assert board_backend({"name": "x", "url": None}) is None

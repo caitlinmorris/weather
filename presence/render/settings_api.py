@@ -19,6 +19,8 @@ WIZARD_REQUIRED = ("ANTHROPIC_API_KEY", "PRESENCE_PERSON_ID")
 
 def settings_snapshot() -> dict:
     """Current settings for the GUI — secrets reported as presence only."""
+    from presence.relay.invite import board_backend
+
     boards = []
     for b in config.boards():
         boards.append({
@@ -26,6 +28,8 @@ def settings_snapshot() -> dict:
             "url": b["url"],
             "tier": b["tier"],
             "has_token": bool(b["token"]),
+            # non-None means this machine can mint invites for the room
+            "hosted_backend": board_backend(b),
         })
     return {
         "person_id": config.env_value("PRESENCE_PERSON_ID") or "",
@@ -99,6 +103,20 @@ class SettingsApi:
             return None
         picked = active.create_file_dialog(webview.FOLDER_DIALOG)
         return picked[0] if picked else None
+
+    def invite_member(self, board_name: str, person: str) -> dict:
+        """Mint + register a token for a new member of a board this
+        machine hosts. The token goes back to the page once, for the
+        host to send privately — it is never stored."""
+        from presence.relay.invite import invite
+
+        try:
+            result = invite(board_name, person)
+        except RuntimeError as e:
+            return {"ok": False, "error": str(e)}
+        except Exception as e:  # subprocess/timeout surprises, readable-ish
+            return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+        return {"ok": True, "message": result["message"]}
 
     def save_settings(self, payload: dict) -> dict:
         current = [b["name"] for b in config.boards()]

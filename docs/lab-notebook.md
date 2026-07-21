@@ -129,7 +129,27 @@ gets measured before any further κ-chasing.
 
 ---
 
-## Media shot-list (manual captures, ongoing)
+## 2026-07-21 (later) — fresh-folder walkthrough earns its keep; invites go GUI
+
+Caitlin ran the full self-hosting path (fresh clone, own Cloudflare
+account) while the settings GUI (Tier 0, shipped today) was built in
+parallel. The walkthrough surfaced three real bugs, each fixed at
+source the same hour: docs never said to leave the relay prompt empty
+during host install; make_board_cf never surfaced the deployed URL; and
+the big one — a deploy aborted at the subdomain prompt strands the
+RELAY_TOKENS secret, so the worker 401s everything (fix: hashes persist
+to a local file, failed deploys print two-command recovery). End state:
+CF worker passes the full selftest contract — relay sovereignty is real.
+
+Decision + a corrected instinct: invites become one GUI click (mint
+token, register on relay, show send-this-privately message once). I had
+argued for keeping token-minting in the terminal on "audience-loud"
+grounds; Caitlin pushed back — the principle governs displays, not host
+tooling, and the human step (privately sending the token) survives the
+button. She's right that the barrier was taste, not security: the GUI
+subprocess uses the same wrangler/fly login already on disk. Goal
+restated plainly: 10–15 real users giving feedback; friction in the
+host's path is friction in the study of the *social* questions.
 
 Grab when convenient; store outside the repo or in a gitignored media/
 folder. ⚠ = contains real content — review before any publication use.

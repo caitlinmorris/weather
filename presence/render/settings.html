@@ -147,8 +147,40 @@ function renderBoards() {
     url.oninput = () => b.url = url.value;
     token.oninput = () => b.token = token.value;
     tier.onchange = () => b.tier = tier.value;
-    box.append(el("div", { className: "board" }, name, url, token, tier, rm));
+    const row = el("div", { className: "board" }, name, url, token, tier, rm);
+    box.append(row);
+    if (b.hosted_backend) box.append(invitePanel(b));
   });
+}
+
+// You host this room (relay credentials live on this machine), so you can
+// mint a member token right here. The token shows once; sending it to the
+// person stays yours to do, privately.
+function invitePanel(b) {
+  const who = el("input", { type: "text", placeholder: "their short name",
+                            className: "narrow" });
+  const go = el("button", { textContent: `invite to '${b.name}'…` });
+  const out = el("textarea", { readOnly: true, rows: 8,
+    style: "display:none; width:100%; margin-top:6px; font: inherit;" +
+           "background:#131722; color:#d5dde9; border:1px solid #2e3648;" +
+           "border-radius:5px; padding:6px 8px;" });
+  const note = el("div", { className: "hint" });
+  go.onclick = async () => {
+    if (!who.value.trim()) { note.textContent = "name first — it must match" +
+      " the person id they'll install with"; return; }
+    go.disabled = true;
+    note.textContent = "minting + registering on the relay…";
+    const r = await window.pywebview.api.invite_member(b.name, who.value);
+    go.disabled = false;
+    if (!r.ok) { note.textContent = r.error; return; }
+    out.style.display = "";
+    out.value = r.message;
+    note.textContent = "shown once, not stored — copy and send it to them" +
+      " privately, then you're done.";
+    who.value = "";
+  };
+  return el("div", { style: "margin: 2px 0 10px 12px" },
+    el("div", { className: "board" }, who, go), note, out);
 }
 
 function collect() {

@@ -117,6 +117,15 @@ Everyone receives exactly two private messages: a kit from the provider,
 board lines from the host. If a member later wants a second board, they
 need a new TOKEN (from that board's host) but not a new key.
 
+## Inviting someone later
+
+Hosts don't recreate anything. In the app: settings gear → your room →
+"invite to '<room>'…" — type their short name, and it mints the token,
+registers it with your relay, and shows the exact message to send them
+privately (shown once, never stored). Same thing from the terminal:
+`python -m presence.relay.invite <board> <person>`. Works for both
+backends; the invite button appears only under rooms this machine hosts.
+
 ## Notes for hosts
 
 - **One deployment = one board.** A second room = run the script again
