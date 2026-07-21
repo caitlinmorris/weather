@@ -31,7 +31,7 @@ Two completely separate credentials:
    provides capped study keys — that's the pilot exception, not the
    model. Excerpts of your prompts go to Anthropic for extraction; if
    your AI tool isn't Claude, that's a party that wouldn't otherwise see
-   your work narration. Consent point, stated plainly.)
+   your work narration.)
 
 ## Costs, complete list
 
