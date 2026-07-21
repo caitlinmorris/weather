@@ -126,6 +126,21 @@ privately (shown once, never stored). Same thing from the terminal:
 `python -m presence.relay.invite <board> <person>`. Works for both
 backends; the invite button appears only under rooms this machine hosts.
 
+## Starting from the app instead of the terminal
+
+If you already run we.ather, the settings gear covers most of this doc:
+
+- **Joining a room someone invited you to:** settings gear → "add a
+  room…" → paste the room name, relay URL and token from their invite
+  message → save. That's it — no `.env` editing, no terminal.
+- **Inviting someone to a room you host:** the invite button under that
+  room (previous section).
+- **Creating a brand-new room** is the one step that still needs the
+  terminal: `./presence/relay/make_board_cf.sh <room> <you> <friend...>`
+  (steps 3–4 above). After that one command, everything else — including
+  all future invites — happens in the app. GUI room creation is on the
+  roadmap (it needs the Cloudflare API instead of wrangler).
+
 ## Notes for hosts
 
 - **One deployment = one board.** A second room = run the script again

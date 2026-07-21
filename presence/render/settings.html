@@ -74,6 +74,14 @@
   <h2>rooms (boards)</h2>
   <div id="boards"></div>
   <button id="addBoard">add a room…</button>
+  <div class="hint" id="addHint" style="display:none; margin:6px 0">
+  <b>Joining someone's room?</b> Paste the room name, relay URL and token
+  from the invite they sent you, then save.<br>
+  <b>Starting your own room?</b> That happens in the terminal for now:
+  <code>./presence/relay/make_board_cf.sh &lt;room&gt; &lt;you&gt;
+  &lt;friend&gt;</code> creates it on your free Cloudflare account and
+  prints everyone's values — full guide: <code>docs/self-hosting.md</code>.
+  </div>
   <div class="hint">Tokens are write-only: shown as ●●● when set; type to
   replace. Tier "presence" shares only aliveness, no topics.</div>
 </section>
@@ -231,6 +239,7 @@ async function init() {
   document.getElementById("addBoard").onclick = () => {
     S.boards.push({ name: "", url: "", tier: "topic", has_token: false,
                     original: "" });
+    document.getElementById("addHint").style.display = "";
     renderBoards();
   };
   document.getElementById("save").onclick = async () => {

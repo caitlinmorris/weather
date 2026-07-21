@@ -166,8 +166,10 @@ def invite(board_name: str, person: str) -> dict:
             f"{env_lines(board, token)}\n\n"
             f"Then restart the app and run:\n"
             f"  .venv/bin/python -m presence.pipeline.selftest\n\n"
-            f"(Already using we.ather? Keep your existing PRESENCE_BOARDS "
-            f"line and just add ,{board_name} to it.)"
+            f"(Already using we.ather? Easiest is the app: settings gear "
+            f"→ add a room → paste the name, URL and token above. "
+            f"Or by hand: keep your existing PRESENCE_BOARDS line and just "
+            f"add ,{board_name} to it.)"
         ),
     }
 
