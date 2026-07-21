@@ -652,16 +652,6 @@ keyBtn.onclick = () => {
 renderKey();
 
 // Settings gear: only exists inside the app (pywebview provides the API).
-const gear = document.getElementById("gear");
-function armGear() {
-  if (window.pywebview) {
-    gear.style.display = "";
-    gear.onclick = () => window.pywebview.api.open_settings();
-  }
-}
-window.addEventListener("pywebviewready", armGear);
-armGear();
-
 requestAnimationFrame(draw);
 </script>
 </body>
