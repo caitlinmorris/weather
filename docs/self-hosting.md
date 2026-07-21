@@ -41,6 +41,28 @@ Two completely separate credentials:
 | Your extraction (your Anthropic key) | ~pennies/workday |
 | The software | free, source included |
 
+## Provider mode — someone else pays for your extraction
+
+For small circles (~10-15 people), a provider (e.g. Caitlin) can carry
+the API costs without touching your data: they mint you a personal,
+spend-capped key in THEIR Anthropic Console and bake it into your kit
+(`make_kit.sh` builds one per person). Two properties to understand:
+
+- **Billing is theirs; the data path is not.** Your extraction traffic
+  goes directly from your machine to Anthropic under your personal key —
+  the provider is never a middleman and cannot see your transcripts.
+  (A shared key behind a provider-hosted proxy would centralize content,
+  not just billing — rejected on principle.)
+- The provider can see your usage COSTS per key and can revoke the key;
+  that's the whole visibility they get.
+
+Kit recipients' setup collapses to: unzip → `./install.sh` (one
+question: which folders may be observed — consent is never pre-baked) →
+run. Board hosting is a separate choice: your own Cloudflare account
+(sovereign, below), or ask the provider to host your board on theirs
+(easy-mode; they then operate your room's relay, disclosed to its
+members, seeing only the low-resolution shared states).
+
 ## Setup (host, ~20 minutes)
 
 1. Get the repo (clone or the zip you were sent). You need: macOS,

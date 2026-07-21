@@ -27,3 +27,6 @@ fork-notes/
 # per-board wrangler configs are generated
 presence/relay/worker/wrangler.*.toml
 !presence/relay/worker/wrangler.toml
+
+# built kits contain real keys — never commit
+dist/

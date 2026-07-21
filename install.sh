@@ -24,10 +24,44 @@ if [ ! -d .venv ]; then "$PY" -m venv .venv; fi
 echo "dependencies installed"
 
 # 3. .env
-if [ -f .env ]; then
+if [ -f .env ] && grep -q '^PRESENCE_ALLOWLIST=..*\|^PRESENCE_ALLOWLIST_WARP=..*' .env; then
   echo
   echo ".env already exists — keeping it. (Edit it by hand to change settings,"
   echo "then RESTART the we.ather app — settings are read at launch.)"
+elif [ -f .env ]; then
+  # A pre-configured kit: everything is set EXCEPT consent, which is
+  # always the recipient's own choice, asked here.
+  echo
+  echo "Pre-configured kit detected. One question remains — yours alone:"
+  echo "which project folders may we.ather observe? Only sessions in the"
+  echo "folders you pick are ever read."
+  SOURCES=$(grep '^PRESENCE_SOURCES=' .env | cut -d= -f2)
+  SOURCES=${SOURCES:-claude_code}
+  ALLOW=""
+  if [[ "$SOURCES" == *claude_code* ]]; then
+    PROJECTS_DIR="$HOME/.claude/projects"
+    if [ ! -d "$PROJECTS_DIR" ]; then
+      echo "No Claude Code projects found at $PROJECTS_DIR — run Claude Code once first."
+      exit 1
+    fi
+    i=0; declare -a NAMES
+    for d in "$PROJECTS_DIR"/*/; do
+      name="$(basename "$d")"
+      i=$((i+1)); NAMES[$i]="$name"
+      echo "  [$i] $name"
+    done
+    read -r -p "numbers to include (space-separated, e.g. 1 3 4): " PICKS
+    for n in $PICKS; do
+      ALLOW="${ALLOW:+$ALLOW,}${NAMES[$n]}"
+    done
+    printf 'PRESENCE_ALLOWLIST=%s\n' "$ALLOW" >> .env
+  fi
+  if [[ "$SOURCES" == *warp* ]]; then
+    read -r -p "Warp folders to observe (absolute paths, comma-separated): " WARP_ALLOW
+    printf 'PRESENCE_ALLOWLIST_WARP=%s\n' "$WARP_ALLOW" >> .env
+  fi
+  chmod 600 .env
+  echo "consent recorded in .env"
 else
   echo
   echo "Your short name must EXACTLY match the name your relay token was"
