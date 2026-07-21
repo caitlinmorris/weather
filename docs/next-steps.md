@@ -87,9 +87,19 @@ the cohort still waits for Phase C gates.
   written specs after that.
 - Explicitly parked: packaging (pipx, one-line installers, .app). Revisit
   only if install friction is what an actual participant stumbles on.
-- Parked (requested 2026-07-21): a local settings GUI for boards/folders/
-  consent so daily management leaves the command line — the label_web
-  localhost-page pattern is the natural shape when it's time.
+- Parked, now a ROADMAP (tester request 2026-07-21, "make it a macApp on
+  TestFlight"): **Tier 0** in-app settings GUI + first-run wizard
+  (label_web-pattern HTML page, pywebview native folder picker as the
+  consent gesture; ~2-3 days). **Tier 1** briefcase-packaged .app,
+  Developer ID signed + notarized DMG — no sandbox, no review (~1 week,
+  $99/yr); the pragmatic "real Mac app" at pilot scale. **Tier 2**
+  actual TestFlight: App Sandbox via security-scoped bookmarks — the
+  consent picker literally becomes the OS permission grant (elegant,
+  fiddly; beta review risk; +~1 week). **Tier 3** GUI board creation via
+  Cloudflare REST API (no wrangler) + the D2 invite flow as onboarding —
+  app + invite codes is the consumer-grade shape, and the moment D2 pays
+  for itself. Member/host asymmetry throughout: members get the app;
+  hosts can stay CLI far longer.
 
 **Phase C — cohort onboarding (~2–3 weeks out):** lands on the original
 week-7 pilot timing, but with a measured extractor, an invite flow that
