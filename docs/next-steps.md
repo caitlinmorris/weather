@@ -88,9 +88,10 @@ the cohort still waits for Phase C gates.
 - Explicitly parked: packaging (pipx, one-line installers, .app). Revisit
   only if install friction is what an actual participant stumbles on.
 - Parked, now a ROADMAP (tester request 2026-07-21, "make it a macApp on
-  TestFlight"): **Tier 0** in-app settings GUI + first-run wizard
-  (label_web-pattern HTML page, pywebview native folder picker as the
-  consent gesture; ~2-3 days). **Tier 1** briefcase-packaged .app,
+  TestFlight"): **Tier 0** in-app settings GUI + first-run wizard —
+  DONE 2026-07-21 (settings.html + SettingsApi over pywebview js_api;
+  gear button in-app only; native folder picker as the consent gesture;
+  save-and-relaunch via execv so config changes apply themselves). **Tier 1** briefcase-packaged .app,
   Developer ID signed + notarized DMG — no sandbox, no review (~1 week,
   $99/yr); the pragmatic "real Mac app" at pilot scale. **Tier 2**
   actual TestFlight: App Sandbox via security-scoped bookmarks — the
