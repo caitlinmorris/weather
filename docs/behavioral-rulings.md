@@ -133,6 +133,19 @@ Decided alone and FLAGGED:
    need command text, which currently stays local-only.
 4. **(from C2)** You said "unsure" — provisional floor: 4 prompts before
    any rhythm claim. Adjust when you have a feel.
-5. **NOT BUILT:** rework (D1 unanswered — nothing guessed); B4 bisection
-   (unruled — streaks report plainly and the language channel may
-   overrule, which matches the two-channel doctrine); E2 open.
+5. **NOT BUILT:** rework (D1 unanswered — nothing guessed); E2 open.
+6. **(2026-07-21, from B1/B2 against real data)** Silent tool actions
+   (an Edit landing with no output) are NEUTRAL — your word "outcomes"
+   decided it. And "same failed tests" is recognized by failure-output
+   similarity (signature matching), so the same failure RESUMES a streak
+   across successes; a different failure starts fresh. Confirm.
+7. **B4 IS NOW THE BLOCKING RULING.** Two of your flowing-labeled
+   segments carry grind-level mechanical streaks (your bisection case,
+   measured). The channel now reports them honestly and thereby
+   "disagrees" with you. Rule: should felt-flow-during-methodical-
+   failure win (language channel overrules), or should the display's
+   momentum reflect mechanical friction regardless of mood?
+8. **(from C1, as you predicted)** Your own grinding shows few mechanical
+   failures and calm prompt rhythm — the agitation signature is real but
+   not YOURS. Person-dependent signatures are now a measured finding;
+   per-person calibration is a v2 question.

@@ -88,11 +88,15 @@ class WarpSource:
                     continue
                 failed = exit_code not in (0, None)
                 # Command TEXT stays local (secrets risk, and the semantic
-                # channel doesn't need it) — only the outcome crosses.
+                # channel doesn't need it) — only the outcome crosses. A
+                # success says "exit 0" explicitly: for Warp, empty output
+                # IS an outcome, and the behavioral channel must not read
+                # it as a silent action (ruling B1 refinement).
                 events.append(TranscriptEvent(
                     type="tool", timestamp=stamp, cwd=pwd, session_id="warp",
                     tool_result=ToolResult(
-                        stdout="", stderr=f"exit {exit_code}" if failed else "",
+                        stdout="" if failed else "exit 0",
+                        stderr=f"exit {exit_code}" if failed else "",
                     ),
                 ))
         finally:

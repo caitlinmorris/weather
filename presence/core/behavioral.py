@@ -22,16 +22,24 @@ from presence.pipeline.transcript_parser import TranscriptEvent
 FAILURE_MARKERS = ("error:", "failed", "failure", "traceback",
                    "exit 1", "exit 2", "fatal")
 
-# Read-only tool names (Claude Code): their successes are "unrelated
-# commands" in the sense of ruling B2 and do not break a failure streak.
-# [Tool-kind approximation for B2's "same tests" = translator choice, flagged.]
-READ_ONLY_TOOLS = {"read", "grep", "glob", "ls", "websearch", "webfetch",
-                   "toolsearch"}
+import re as _re
 
 
 def _is_interrupted(event: TranscriptEvent) -> bool:
     r = event.tool_result
     return r is not None and r.interrupted
+
+
+def _is_neutral_action(event: TranscriptEvent) -> bool:
+    """Ruling B1 says successful OUTCOMES break streaks — a tool that
+    completes with no output at all (an Edit landing silently) is an
+    ACTION, not an outcome: it neither counts toward error_frequency nor
+    resets a streak. [Translator refinement of B1's word 'outcome',
+    flagged. Sources whose empty output IS an outcome (Warp's exit 0)
+    say so explicitly in stdout.]"""
+    r = event.tool_result
+    return (r is not None and not r.interrupted
+            and not r.stdout.strip() and not r.stderr.strip())
 
 
 def _is_failure(event: TranscriptEvent) -> bool:
@@ -59,41 +67,58 @@ def error_frequency(events: list[TranscriptEvent]) -> float | None:
     Interrupted runs are excluded from both sides (ruling A2). None when
     there are no countable runs: "no evidence" is not "no failures"."""
     countable = [e for e in events
-                 if e.tool_result is not None and not _is_interrupted(e)]
+                 if e.tool_result is not None and not _is_interrupted(e)
+                 and not _is_neutral_action(e)]  # ruling B1: outcomes only
     if not countable:
         return None
     return sum(1 for e in countable if _is_failure(e)) / len(countable)
 
 
-def failure_streak(events: list[TranscriptEvent]) -> int:
-    """Longest run of consecutive failures.
+def _failure_signature(event: TranscriptEvent) -> frozenset:
+    """Distinctive tokens of a failure's output — 'the same failed tests'
+    (ruling B2) recognized by their error text rather than by command
+    identity, which stays local."""
+    r = event.tool_result
+    text = (r.stderr + " " + r.stdout[-400:]).lower()
+    tokens = _re.findall(r"[a-z0-9_./:-]{5,}", text)
+    distinctive = {t for t in tokens if any(c in t for c in "_./:") or len(t) > 8}
+    return frozenset(distinctive or tokens[:12])
 
-    Ruling B1: conversation between failures does NOT break a streak
-    ("just discussing the why doesn't mean it's working"); a success does.
-    Ruling B2: an unrelated success (read-only tool) does NOT break it —
-    only a substantive (execution-type) success resets.
-    Ruling A2: interrupted runs are neutral — they neither extend nor
-    break."""
-    longest = current = 0
-    # Track the tool kind that produced each result: results follow the
-    # assistant event that invoked the tool.
-    last_tools: list[str] = []
+
+def _same_failure(a: frozenset, b: frozenset) -> bool:
+    if not a and not b:
+        return True
+    if not a or not b:
+        return False
+    return len(a & b) / len(a | b) >= 0.3
+
+
+def failure_streak(events: list[TranscriptEvent]) -> int:
+    """Longest recurrence streak of the same failure.
+
+    Rulings B1 + B2, reconciled as: a success PAUSES streaks; a failure
+    that matches a paused streak's signature RESUMES it ("returns to the
+    same failed tests" — B2); an unrelated failure starts fresh (B1's
+    split into streaks of one). Conversation never breaks anything (B1);
+    interruptions (A2) and silent actions (B1 'outcomes' refinement) are
+    neutral. [Signature matching = translator approximation, flagged.]"""
+    streaks: list[dict] = []  # {sig, count}
     for e in events:
-        if e.tool_names:
-            last_tools = [t.lower() for t in e.tool_names]
-        if e.tool_result is None or _is_interrupted(e):
-            continue  # prompts/assistant text: ruling B1; interrupted: A2
+        if (e.tool_result is None or _is_interrupted(e)
+                or _is_neutral_action(e)):
+            continue
         if _is_failure(e):
-            current += 1
-            longest = max(longest, current)
-        else:
-            substantive = not last_tools or any(
-                t not in READ_ONLY_TOOLS for t in last_tools
-            )
-            if substantive:  # ruling B1: a real success splits the streak
-                current = 0
-            # else: ruling B2 — unrelated read-only success, streak holds
-    return longest
+            sig = _failure_signature(e)
+            for s in streaks:
+                if _same_failure(s["sig"], sig):
+                    s["count"] += 1
+                    s["sig"] = s["sig"] | sig
+                    break
+            else:
+                streaks.append({"sig": sig, "count": 1})
+        # successes pause (implicitly): they don't reset counts, but a
+        # NON-matching later failure starts its own streak — B1's split.
+    return max((s["count"] for s in streaks), default=0)
 
 
 def agitation(events: list[TranscriptEvent]) -> str | None:

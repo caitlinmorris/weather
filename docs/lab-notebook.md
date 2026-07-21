@@ -106,6 +106,27 @@ mechanism (disagreement-derived) when queued, and momentum waits for
 behavioral.py (Stage 3, mine to write). Failing predictions in public
 beats passing vibes in private.
 
+## 2026-07-21 — rulings translated; momentum's failure diagnosed to two humans
+
+Lara clarification: she uses Codex-the-model INSIDE Warp — she's a Warp
+user; the built adapter is right; Codex paused (no direct test subject).
+Behavioral rulings (hers) translated under the judgment-authorship
+contract: every branch cites a ruling, her scenarios are the tests, five
+translator decisions flagged back. Two translation bugs found by LOOKING
+at testimony on her grind segments: silent Edit results counted as
+streak-resetting successes (her B1 word "outcomes" fixed it); B2's
+"returns to the same failed tests" needed failure-SIGNATURE matching,
+not tool-kind proxies. **Result: testimony now honest (grinds 11-33%
+error frequency, flows 0-6%) but κ target failed (0.06). Diagnosis is
+human-shaped, not mysterious: (1) B4 unruled — machine-grind/felt-flow
+bisection segments now "correctly" disagree with her labels; (2) her
+grinding is mostly SEMANTIC (few mechanical failures, calm rhythm — the
+person-dependence she predicted in C1). Also: run-to-run extraction
+variance exceeds the effects chased at n=27 (stance κ swung −0.25→+0.14
+on identical inputs) — consistency probe promoted.** Decision: stop
+iterating; B4 + C1-personalization go back to the rulings doc; variance
+gets measured before any further κ-chasing.
+
 ---
 
 ## Media shot-list (manual captures, ongoing)

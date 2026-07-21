@@ -65,6 +65,8 @@ def test_events_shape_and_order(tmp_path):
     # command TEXT never appears anywhere.
     results = [e.tool_result for e in events if e.tool_result]
     assert [r.stderr for r in results] == ["exit 1", "", ""]
+    # Warp successes are explicit outcomes, never silent actions:
+    assert all(r.stdout == "exit 0" for r in results if not r.stderr)
 
 
 def test_segments_split_and_origin(tmp_path, monkeypatch):

@@ -45,6 +45,16 @@ def test_a1_prose_error_is_not_failure():
 def test_a2_interrupted_excluded_from_both_sides():
     events = flat(tool(stderr="x"), tool(interrupted=True), tool(stdout="ok"))
     assert error_frequency(events) == 0.5  # denominator is 2, not 3
+
+
+def test_b1_refinement_silent_actions_are_neutral():
+    # An Edit landing with no output is an ACTION, not an outcome: it
+    # neither dilutes error_frequency nor resets a streak.
+    events = flat(tool(stderr="FAILED", via="Bash"),
+                  tool(via="Edit"),               # silent action
+                  tool(stderr="FAILED", via="Bash"))
+    assert failure_streak(events) == 2
+    assert error_frequency(events) == 1.0
     # And an interruption neither breaks nor extends a streak:
     streaky = flat(tool(stderr="x"), tool(interrupted=True), tool(stderr="x"))
     assert failure_streak(streaky) == 2
@@ -59,10 +69,20 @@ def test_b1_conversation_between_failures_is_one_grind():
     assert failure_streak(events) == 2
 
 
-def test_b1_success_splits_into_two_streaks_of_one():
-    events = flat(tool(stderr="x"), tool(stdout="ok", via="Bash"),
-                  tool(stderr="x"))
+def test_b1_success_splits_unrelated_failures():
+    # Different failures around a success: two streaks of one (B1).
+    events = flat(tool(stderr="AssertionError: auth_token_refresh"),
+                  tool(stdout="ok", via="Bash"),
+                  tool(stderr="TypeError: render_overlay missing arg"))
     assert failure_streak(events) == 1
+
+
+def test_b2_same_failure_resumes_across_success():
+    # The SAME failing test after a success continues the streak (B2).
+    events = flat(tool(stderr="FAILED test_token_refresh - assert 401"),
+                  tool(stdout="build ok", via="Bash"),
+                  tool(stderr="FAILED test_token_refresh - assert 401"))
+    assert failure_streak(events) == 2
 
 
 # --- ruling B2: unrelated read-only success does not break the streak ---------------

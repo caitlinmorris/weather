@@ -218,13 +218,26 @@ class Extractor:
         return _build_observation(fields, person_id, self.extractor_version)
 
     def _call(self, user_message: str) -> str:
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=1024,
-            system=self.system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-        return "".join(b.text for b in response.content if b.type == "text")
+        import time
+
+        last_error = None
+        for attempt in range(3):  # transient 5xx/overload resilience
+            try:
+                response = self.client.messages.create(
+                    model=self.model,
+                    max_tokens=1024,
+                    system=self.system_prompt,
+                    messages=[{"role": "user", "content": user_message}],
+                )
+                return "".join(b.text for b in response.content if b.type == "text")
+            except Exception as e:
+                status = getattr(e, "status_code", None)
+                if status is not None and status >= 500 and attempt < 2:
+                    last_error = e
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                raise
+        raise last_error
 
 
 # -- response handling ------------------------------------------------------------
