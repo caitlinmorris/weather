@@ -102,6 +102,15 @@ the cohort still waits for Phase C gates.
   for itself. Member/host asymmetry throughout: members get the app;
   hosts can stay CLI far longer.
 
+**Near-future (Caitlin, 2026-07-21): per-board sharing scope.** Tier is
+already per-board; the OBSERVATION allowlist is global — every board
+receives states from all allowlisted projects. Wanted: share different
+work with different rooms ("thesis with Daniel, not with Lara").
+Requires push-time routing of projects (or another scoping unit — open
+design question, Caitlin's call) to boards, and a settings GUI that
+shows per room exactly what flows there. Design conversation before
+code; touches rollup's one-stream-to-all-boards assumption.
+
 **Phase C — cohort onboarding (~2–3 weeks out):** lands on the original
 week-7 pilot timing, but with a measured extractor, an invite flow that
 deletes the manual token dance, and a board topology that respects the
