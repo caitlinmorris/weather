@@ -49,10 +49,12 @@ def settings_snapshot() -> dict:
     }
 
 
-def settings_to_env(payload: dict, current_board_names: list[str]) -> dict:
+def settings_to_env(payload: dict, current_boards: list[dict]) -> dict:
     """Translate the GUI payload into .env updates. Pure and testable.
     Board removal cleans up that board's keys; tokens/keys only change
-    when a non-empty new value arrives."""
+    when a non-empty new value arrives. A renamed board (its `original`
+    field names a current board) carries that board's token to its new
+    key — renaming must never orphan a credential."""
     updates: dict = {
         "PRESENCE_PERSON_ID": (payload.get("person_id") or "").strip() or None,
         "PRESENCE_SOURCES": ",".join(payload.get("sources") or ["claude_code"]),
@@ -63,6 +65,7 @@ def settings_to_env(payload: dict, current_board_names: list[str]) -> dict:
     if (payload.get("api_key") or "").strip():
         updates["ANTHROPIC_API_KEY"] = payload["api_key"].strip()
 
+    current_tokens = {b["name"]: b.get("token") or "" for b in current_boards}
     boards = payload.get("boards") or []
     names = [b["name"].strip() for b in boards if b.get("name", "").strip()]
     updates["PRESENCE_BOARDS"] = ",".join(names) if names else None
@@ -73,9 +76,12 @@ def settings_to_env(payload: dict, current_board_names: list[str]) -> dict:
         key = name.upper().replace("-", "_")
         updates[f"RELAY_URL_{key}"] = (b.get("url") or "").strip() or None
         updates[f"PRESENCE_TIER_{key}"] = b.get("tier") or "topic"
+        original = (b.get("original") or "").strip()
         if (b.get("token") or "").strip():
             updates[f"RELAY_TOKEN_{key}"] = b["token"].strip()
-    for gone in set(current_board_names) - set(names):
+        elif original and original != name and current_tokens.get(original):
+            updates[f"RELAY_TOKEN_{key}"] = current_tokens[original]
+    for gone in set(current_tokens) - set(names):
         key = gone.upper().replace("-", "_")
         updates[f"RELAY_URL_{key}"] = None
         updates[f"RELAY_TOKEN_{key}"] = None
@@ -119,13 +125,30 @@ class SettingsApi:
         return {"ok": True, "message": result["message"]}
 
     def save_settings(self, payload: dict) -> dict:
-        current = [b["name"] for b in config.boards()]
+        current = config.boards()
+        tokens = {b["name"]: b.get("token") or "" for b in current}
+        for b in payload.get("boards") or []:
+            name = (b.get("name") or "").strip()
+            if not name:
+                continue
+            original = (b.get("original") or "").strip()
+            resolved = ((b.get("token") or "").strip()
+                        or tokens.get(name)
+                        or (original and tokens.get(original)))
+            if not resolved:
+                # Refuse rather than save a room that boards() would then
+                # silently drop for having no credential.
+                return {"ok": False, "error":
+                        f"room '{name}' has no token — paste one, or leave "
+                        "the room unchanged"}
         updates = settings_to_env(payload, current)
         config.update_env(updates)
         return {"ok": True}
 
     def save_and_restart(self, payload: dict) -> dict:
         result = self.save_settings(payload)
+        if not result.get("ok"):
+            return result
         self.restart_requested = True
         import webview
 

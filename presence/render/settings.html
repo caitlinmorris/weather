@@ -198,6 +198,7 @@ function collect() {
     debug: document.getElementById("debug").checked,
     boards: S.boards.map(b => ({
       name: b.name, url: b.url, tier: b.tier, token: b.token || "",
+      original: b.original || "",
     })),
   };
 }
@@ -207,6 +208,8 @@ async function init() {
   if (booted) return;
   booted = true;
   S = await window.pywebview.api.get_settings();
+  // Remember each room's saved name so a rename can carry its token.
+  S.boards.forEach(b => b.original = b.name);
   document.getElementById("person").value = S.person_id;
   document.getElementById("keyhint").textContent = S.has_api_key
     ? "key is set — leave blank to keep it" : "no key set yet";
@@ -226,12 +229,15 @@ async function init() {
     }
   };
   document.getElementById("addBoard").onclick = () => {
-    S.boards.push({ name: "", url: "", tier: "topic", has_token: false });
+    S.boards.push({ name: "", url: "", tier: "topic", has_token: false,
+                    original: "" });
     renderBoards();
   };
   document.getElementById("save").onclick = async () => {
-    document.getElementById("status").textContent = "saving — relaunching…";
-    await window.pywebview.api.save_and_restart(collect());
+    const status = document.getElementById("status");
+    status.textContent = "saving — relaunching…";
+    const r = await window.pywebview.api.save_and_restart(collect());
+    if (r && !r.ok) status.textContent = r.error;
   };
 }
 

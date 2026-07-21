@@ -27,7 +27,9 @@ def test_settings_to_env_full_payload():
             {"name": "thesis", "url": "https://y.dev", "tier": "topic", "token": "tok9"},
         ],
     }
-    updates = settings_to_env(payload, current_board_names=["studio", "old"])
+    updates = settings_to_env(payload, current_boards=[
+        {"name": "studio", "token": "s-tok"}, {"name": "old", "token": "o-tok"},
+    ])
     assert updates["PRESENCE_PERSON_ID"] == "matt"
     assert "ANTHROPIC_API_KEY" not in updates  # blank key = keep existing
     assert updates["PRESENCE_SOURCES"] == "claude_code,warp"
@@ -47,11 +49,28 @@ def test_settings_to_env_key_only_when_typed():
         {"person_id": "m", "api_key": " sk-new ", "sources": [],
          "claude_allowlist": [], "warp_allowlist": [], "debug": False,
          "boards": []},
-        current_board_names=[],
+        current_boards=[],
     )
     assert updates["ANTHROPIC_API_KEY"] == "sk-new"
     assert updates["PRESENCE_DEBUG"] is None
     assert updates["PRESENCE_BOARDS"] is None
+
+
+def test_settings_to_env_rename_carries_token():
+    # Regression: renaming 'dan' -> 'family' with a blank token field must
+    # move dan's token to the new key, not orphan the room (2026-07-21).
+    payload = {
+        "person_id": "c", "api_key": "", "sources": [],
+        "claude_allowlist": [], "warp_allowlist": [], "debug": False,
+        "boards": [{"name": "family", "url": "https://r.fly.dev",
+                    "tier": "topic", "token": "", "original": "dan"}],
+    }
+    updates = settings_to_env(payload, current_boards=[
+        {"name": "dan", "token": "dan-tok"},
+    ])
+    assert updates["RELAY_TOKEN_FAMILY"] == "dan-tok"
+    assert updates["RELAY_TOKEN_DAN"] is None
+    assert updates["PRESENCE_BOARDS"] == "family"
 
 
 def test_invite_rejects_placeholder_names():
