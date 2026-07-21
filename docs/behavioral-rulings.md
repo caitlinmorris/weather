@@ -45,18 +45,18 @@ The strongest stuckness signal: failures in a row.
 One streak of 2, or two streaks of 1? (Does conversation between
 failures break the streak, or is it all one grind?)
 
-> _your ruling:_
+> _your ruling:_ If there are more failures than there are successful outcomes in a row, that's a consistent losing streak. Just discussing the "why" doesn't mean it's working. If there is a failure and then a success and then another failure, that success would break it into two streaks of 1. 
 
 **B2.** Tests fail three times; then a DIFFERENT kind of command (say,
 just listing files) succeeds; then tests fail again. Did the streak
 break at the unrelated success?
 
-> _your ruling:_
+> _your ruling:_ No, if the user returns to trying to run the same failed tests, that feels like a continued fail streak.
 
 **B3.** How many in a row starts to MEAN something to you? (Two fails is
 Tuesday; is four a grind? Where's your line, if you have one?)
 
-> _your ruling:_
+> _your ruling:_ Three or more starts to feel like a grind. Two fails should downgrade from flow if the previous classification was flow state.
 
 **B4.** Your own bisection note from the eval: four deliberate failing
 runs while methodically narrowing is not suffering. Should this channel
@@ -64,7 +64,7 @@ even try to tell the difference, or report the streak plainly and let
 the language channel (which can hear "ok, halving the search space")
 overrule? 
 
-> _your ruling:_
+> _your ruling:_ 
 
 ## C. What does rushing / agitation look like?
 
@@ -78,7 +78,7 @@ we'll only encode what you'd stand behind.
 **C2.** How many prompts before a rhythm claim is honest? (Below that:
 "we don't know.")
 
-> _your ruling:_
+> _your ruling:_ Unsure
 
 ## D. What is rework?
 
@@ -86,7 +86,7 @@ we'll only encode what you'd stand behind.
 "change something, run it, it breaks, change it back, try again"). What
 sequence in the mechanical record would convince you that was happening?
 
-> _your ruling:_
+> _your ruling:_ 
 
 **D2.** Constraint, honestly stated: the record currently does NOT say
 WHICH file each edit touched, so "edited X, reverted X" can't be detected
@@ -95,7 +95,7 @@ pattern worth reporting, or should we extend the record to include file
 names (a small privacy question: filenames stay local, but they'd now be
 read by this channel)?
 
-> _your ruling:_
+> _your ruling:_ Do not include file names.
 
 ## E. When do we say "we don't know"?
 
@@ -104,7 +104,7 @@ thinking, whiteboarding). What should this channel report — and should
 "quiet window" itself be a hint, given the sensor-limits lesson that
 contemplation is invisible?
 
-> _your ruling:_
+> _your ruling:_ If there's nothing to report, it should just be classed as quiet; that is, there should be nothing to classify.
 
 **E2.** Anything above you want measured that wasn't asked? (This is the
 wish-list question again — it found "directing" last time.)
@@ -113,8 +113,26 @@ wish-list question again — it found "directing" last time.)
 
 ---
 
-*When you've answered: hand this doc back. Translation returns as (a)
-code where every branch cites a ruling number, (b) your scenarios from
-B1/B2/etc. as tests using your expected answers, (c) a list of anything
-the translator had to decide alone, flagged for your ruling — never
-silently chosen.*
+---
+
+## Translator's returned flags (2026-07-21) — yours to rule when ready
+
+Translated: A1, A2, A3 (error_frequency), B1, B2, B3, C1, E1 — code in
+core/behavioral.py cites each; your scenarios are tests/test_behavioral.py.
+Decided alone and FLAGGED:
+
+1. **(from A1)** "error:" with a colon (compiler-style) counts as a
+   failure marker; bare "error" in prose does not. Confirm or adjust.
+2. **(from A2)** The "depends what the next prompt says" half of your
+   interruption ruling is cross-channel (behavioral event + semantic
+   reading) — the behavioral side marks interruptions neutral; the
+   semantic overrule isn't built. Fine as-is, or want it queued?
+3. **(from B2)** "Returns to the same failed tests" is approximated as:
+   only successes from execution-type tools break a streak; read-only
+   tool successes (Read/Grep/ls) don't. True same-command matching would
+   need command text, which currently stays local-only.
+4. **(from C2)** You said "unsure" — provisional floor: 4 prompts before
+   any rhythm claim. Adjust when you have a feel.
+5. **NOT BUILT:** rework (D1 unanswered — nothing guessed); B4 bisection
+   (unruled — streaks report plainly and the language channel may
+   overrule, which matches the two-channel doctrine); E2 open.

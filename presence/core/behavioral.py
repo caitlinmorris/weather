@@ -1,37 +1,42 @@
-"""The behavioral channel: deterministic features over transcript events.
+"""The behavioral channel — a cited translation of docs/behavioral-rulings.md.
 
-HUMAN-WRITTEN territory (Stage 3). This is a STARTER: `error_density` is
-fully worked as the pattern to follow; the remaining features are specs
-with edge-case questions — implementing them is the learning content, and
-`max_failure_streak` is the one the eval is waiting for (momentum κ ≥ 0.4
-is the pre-registered target in person-model-spec-v1.md).
+The rulings document is the human-written artifact; this file implements it
+under the judgment-authorship contract (docs/decisions/2026-07-16-judgment-
+authorship.md): every branch cites its ruling; anything the translator had
+to decide alone is flagged at the bottom of the rulings doc, not silently
+chosen; names follow Caitlin's vocabulary (A3: "error_frequency").
 
-Doctrine (capture-overlay-architecture-v1): this channel is deterministic,
-free, and reads tool results IN FULL — it sees exactly the friction the
-semantic channel is structurally blind to. Neither channel is ground
-truth: behavior can't tell methodical bisection from flailing; narration
-can't be trusted about whether things are working. They correct each
-other, which is why both exist.
-
-Everything here is pure functions: list[TranscriptEvent] in, typed value
-out, no I/O, no model calls, no clocks.
+Pure functions: list[TranscriptEvent] in, typed value out. No I/O, no
+model calls, no clocks.
 """
 
 from __future__ import annotations
 
 from presence.pipeline.transcript_parser import TranscriptEvent
 
-# Words in a tool result that indicate failure even when the tool doesn't
-# use stderr (e.g. pytest failures arrive on stdout). Tune against real
-# sessions; keep lowercase.
-FAILURE_MARKERS = ("error", "failed", "failure", "traceback", "exit 1",
-                   "exit 2", "fatal")
+# Ruling A1: failure = error text / FAILED / nonzero exit — EXCEPT the bare
+# word "error" appearing in prose without an error signal. Translation:
+# structured markers only; "error:" (compiler-style, with colon) kept as
+# structured, bare "error" dropped. [Colon distinction = translator choice,
+# flagged.]
+FAILURE_MARKERS = ("error:", "failed", "failure", "traceback",
+                   "exit 1", "exit 2", "fatal")
+
+# Read-only tool names (Claude Code): their successes are "unrelated
+# commands" in the sense of ruling B2 and do not break a failure streak.
+# [Tool-kind approximation for B2's "same tests" = translator choice, flagged.]
+READ_ONLY_TOOLS = {"read", "grep", "glob", "ls", "websearch", "webfetch",
+                   "toolsearch"}
+
+
+def _is_interrupted(event: TranscriptEvent) -> bool:
+    r = event.tool_result
+    return r is not None and r.interrupted
 
 
 def _is_failure(event: TranscriptEvent) -> bool:
-    """A tool-result event that looks like something went wrong."""
     r = event.tool_result
-    if r is None:
+    if r is None or r.interrupted:  # ruling A2: interrupted is NEITHER
         return False
     if r.stderr.strip():
         return True
@@ -40,97 +45,111 @@ def _is_failure(event: TranscriptEvent) -> bool:
 
 
 def _is_success(event: TranscriptEvent) -> bool:
-    return event.tool_result is not None and not _is_failure(event)
+    r = event.tool_result
+    if r is None or r.interrupted:  # ruling A2
+        return False
+    return not _is_failure(event)
 
 
 # ---------------------------------------------------------------------------
-# WORKED EXAMPLE — the pattern: tiny spec, pure function, edge cases in tests.
-# ---------------------------------------------------------------------------
 
 
-def error_density(events: list[TranscriptEvent]) -> float | None:
-    """Share of tool results that look like failures, 0.0–1.0.
-
-    None (not 0.0) when there are no tool results at all: "no evidence"
-    and "no failures" are different claims — the unknown-honesty rule
-    applies to features too."""
-    results = [e for e in events if e.tool_result is not None]
-    if not results:
+def error_frequency(events: list[TranscriptEvent]) -> float | None:
+    """Ruling A3 (her name). Share of tool runs that went wrong, 0.0-1.0.
+    Interrupted runs are excluded from both sides (ruling A2). None when
+    there are no countable runs: "no evidence" is not "no failures"."""
+    countable = [e for e in events
+                 if e.tool_result is not None and not _is_interrupted(e)]
+    if not countable:
         return None
-    return sum(1 for e in results if _is_failure(e)) / len(results)
+    return sum(1 for e in countable if _is_failure(e)) / len(countable)
 
 
-# ---------------------------------------------------------------------------
-# YOURS TO IMPLEMENT — specs and questions below. Delete each
-# NotImplementedError as you go; hint_block() picks features up
-# automatically once they stop raising.
-# ---------------------------------------------------------------------------
+def failure_streak(events: list[TranscriptEvent]) -> int:
+    """Longest run of consecutive failures.
+
+    Ruling B1: conversation between failures does NOT break a streak
+    ("just discussing the why doesn't mean it's working"); a success does.
+    Ruling B2: an unrelated success (read-only tool) does NOT break it —
+    only a substantive (execution-type) success resets.
+    Ruling A2: interrupted runs are neutral — they neither extend nor
+    break."""
+    longest = current = 0
+    # Track the tool kind that produced each result: results follow the
+    # assistant event that invoked the tool.
+    last_tools: list[str] = []
+    for e in events:
+        if e.tool_names:
+            last_tools = [t.lower() for t in e.tool_names]
+        if e.tool_result is None or _is_interrupted(e):
+            continue  # prompts/assistant text: ruling B1; interrupted: A2
+        if _is_failure(e):
+            current += 1
+            longest = max(longest, current)
+        else:
+            substantive = not last_tools or any(
+                t not in READ_ONLY_TOOLS for t in last_tools
+            )
+            if substantive:  # ruling B1: a real success splits the streak
+                current = 0
+            # else: ruling B2 — unrelated read-only success, streak holds
+    return longest
 
 
-def max_failure_streak(events: list[TranscriptEvent]) -> int:
-    """THE momentum feature. Longest run of consecutive failing tool
-    results, where a success resets the streak.
+def agitation(events: list[TranscriptEvent]) -> str | None:
+    """Ruling C1: the stuck signature she stands behind — SHORTER and
+    REPEATED prompts (all-caps as a strong marker; noted person-dependent).
+    Returns 'agitated' | 'calm' | None (insufficient evidence).
 
-    Design questions to answer before writing (worth notes in the lab
-    notebook):
-    - Does a non-tool event (a human prompt, an assistant message) between
-      two failures break the streak? (Consider: four failing test runs
-      with discussion in between is still one grind.)
-    - Does an *interrupted* tool result (r.interrupted) count as failure,
-      success, or neither?
-    - Should the streak be global to the window, or per-ish "activity"?
-      (v1: keep it simple; note what you punted.)
-    """
-    raise NotImplementedError("Stage 3: yours to write")
-
-
-def cadence_trend(events: list[TranscriptEvent]) -> str:
-    """Trend of the person's prompting rhythm across the window:
-    'accelerating' | 'steady' | 'sparse' | 'unknown'.
-
-    Appendix A's agitation signature is accelerating gaps + shrinking
-    prompts. Questions: how many prompts is enough to claim a trend
-    (fewer than 3 is surely 'unknown')? Compare first-half vs second-half
-    mean gaps, or fit something fancier? (Simple wins; this feeds a hint,
-    not a verdict.) Events without timestamps exist — decide their fate.
-    """
-    raise NotImplementedError("Stage 3: yours to write")
+    Ruling C2 was 'unsure' about the minimum prompt count; translator's
+    provisional floor is 4, FLAGGED for her ruling."""
+    prompts = [e.text for e in events if e.is_human_prompt and e.text.strip()]
+    if len(prompts) < 4:  # provisional per C2 flag
+        return None
+    half = len(prompts) // 2
+    early = sum(len(p) for p in prompts[:half]) / half
+    late = sum(len(p) for p in prompts[half:]) / (len(prompts) - half)
+    shrinking = late < early * 0.6
+    caps = any(p.isupper() and len(p) > 8 for p in prompts)  # C1: all-caps
+    repeats = 0
+    for a, b in zip(prompts, prompts[1:]):
+        wa, wb = set(a.lower().split()), set(b.lower().split())
+        if wa and wb and len(wa & wb) / len(wa | wb) >= 0.5:
+            repeats += 1  # C1: "no, that still didn't work" repetition
+    if caps or (shrinking and repeats >= 1) or repeats >= 2:
+        return "agitated"
+    return "calm"
 
 
-def edit_oscillation(events: list[TranscriptEvent]) -> int:
-    """Approximate rework loops: count Edit->failure->Edit oscillations.
-
-    Honest constraint: events currently carry no file paths (the parser
-    drops tool inputs), so true same-file revert detection is impossible
-    today. Decide: approximate with tool-sequence patterns, or request the
-    parser extension (pipeline work, requestable) and do it properly.
-    Either answer is defensible; write down why you chose yours.
-    """
-    raise NotImplementedError("Stage 3: yours to write")
-
-
-# ---------------------------------------------------------------------------
-# Assembly — already wired-ready: implemented features appear, stubs are
-# skipped, so the hint block grows as you work.
-# ---------------------------------------------------------------------------
+# Rework (section D): D1 unanswered — NOT BUILT, per the contract (nothing
+# is guessed). D2 ruled: no filenames enter the record. When D1 is ruled,
+# the approximate-pattern translation goes here.
 
 
 def hint_block(events: list[TranscriptEvent]) -> str:
-    """Behavioral hints for the semantic extractor's prompt. Deterministic
-    facts only — the semantic channel judges; this channel testifies."""
+    """Deterministic testimony for the semantic extractor. Includes her
+    interpretive thresholds (ruling B3) so the language channel receives
+    the ruling, not just the number. Ruling B4 (does bisection get
+    distinguished?) is unanswered — until ruled, the streak is reported
+    plainly and the language channel may overrule, which matches the
+    two-channel doctrine anyway."""
+    prompts = any(e.is_human_prompt for e in events)
+    results = any(e.tool_result is not None for e in events)
+    if not prompts and not results:
+        return "quiet window — nothing to classify"  # ruling E1
+
     parts: list[str] = []
-    for name, fn in (
-        ("error_density", error_density),
-        ("max_failure_streak", max_failure_streak),
-        ("cadence", cadence_trend),
-        ("edit_oscillations", edit_oscillation),
-    ):
-        try:
-            value = fn(events)
-        except NotImplementedError:
-            continue
-        if value is not None:
-            if isinstance(value, float):
-                value = f"{value:.0%}"
-            parts.append(f"{name}: {value}")
-    return "; ".join(parts) if parts else "no behavioral evidence in window"
+    freq = error_frequency(events)
+    if freq is not None:
+        parts.append(f"error_frequency: {freq:.0%}")
+    streak = failure_streak(events)
+    if streak >= 3:  # ruling B3: three or more is a grind
+        parts.append(f"failure_streak: {streak} (grind-level)")
+    elif streak == 2:  # ruling B3: two downgrades from flowing
+        parts.append("failure_streak: 2 (downgrade from flowing)")
+    elif streak == 1:
+        parts.append("failure_streak: 1")
+    mood = agitation(events)
+    if mood is not None:
+        parts.append(f"prompt_rhythm: {mood}")
+    return "; ".join(parts) if parts else "quiet window — nothing to classify"

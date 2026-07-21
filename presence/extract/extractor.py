@@ -110,21 +110,10 @@ def format_event(event: TranscriptEvent) -> str | None:
 
 
 def shallow_hints(segment: Segment) -> str:
-    """Metadata counts available before core/behavioral.py exists. Labeled as
-    shallow so the prompt's channel-weighing rule isn't over-trusted yet."""
-    tool_counts: dict[str, int] = {}
-    stderr_results = 0
-    for e in segment.events:
-        for name in e.tool_names:
-            tool_counts[name] = tool_counts.get(name, 0) + 1
-        if e.tool_result is not None and e.tool_result.stderr:
-            stderr_results += 1
-    tools = " ".join(f"{n}×{c}" for n, c in sorted(tool_counts.items())) or "none"
+    """Window-shape context that accompanies the behavioral testimony."""
     return (
         f"segment duration: {segment.duration_minutes:.0f} min; "
-        f"human prompts: {segment.human_prompt_count}; "
-        f"tool calls: {tools}; tool results with stderr: {stderr_results} "
-        f"(shallow counts only; full behavioral channel not yet wired)"
+        f"human prompts: {segment.human_prompt_count}"
     )
 
 
@@ -166,9 +155,14 @@ class Extractor:
         time. Pass `events` to extract only a delta (the rolling-update
         design: previous observation as compressed memory + new events only —
         never re-reading the whole session)."""
-        lines = [l for l in (format_event(e) for e in (events if events is not None else segment.events)) if l]
+        window_events = events if events is not None else segment.events
+        lines = [l for l in (format_event(e) for e in window_events) if l]
         obs = previous
-        hints = shallow_hints(segment)
+        # The behavioral channel testifies over exactly the events the
+        # semantic channel will read (docs/behavioral-rulings.md).
+        from presence.core.behavioral import hint_block
+
+        hints = shallow_hints(segment) + "; " + hint_block(window_events)
         for chunk in self._chunk(lines):
             obs = self._update(obs, chunk, hints, person_id)
         if obs is None:
