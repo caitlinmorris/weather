@@ -445,8 +445,12 @@ function draw(now) {
   // Weather lines stay PER BOARD — never an aggregate across boards (the
   // composite is viewer-side only; see social-topology.md). Rooms are
   // labeled by who's in them, never by config keys.
-  const boardNames = BOARDS.length
-    ? BOARDS
+  // Tolerate builder/template version skew (a running app rebuilds with
+  // old code against this fresh template): normalize plain-string boards.
+  const boardList = BOARDS.map(b =>
+    typeof b === "string" ? { key: b, label: "with " + b } : b);
+  const boardNames = boardList.length
+    ? boardList
     : [...new Set(ALL_STATES.map(s => s.board).filter(Boolean))]
         .map(k => ({ key: k, label: k }));
   let weather;
