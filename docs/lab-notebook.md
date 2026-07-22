@@ -151,6 +151,30 @@ subprocess uses the same wrangler/fly login already on disk. Goal
 restated plainly: 10–15 real users giving feedback; friction in the
 host's path is friction in the study of the *social* questions.
 
+---
+
+## 2026-07-21 (evening) — the orange bias: quoted failure is not felt failure
+
+Caitlin: clouds skew debugging-orange even on planning/docs topics.
+Data: 50% of today's states are phase=debugging vs 0–35% on every prior
+day. Today's sessions were saturated with PASTED error output — the CF
+walkthrough's 401s, selftest FAILs, the dead-widget report — much of it
+quoted into conversations whose actual activity was planning, docs, or
+tool-fixing. Hypothesis: Haiku reads quoted error text as evidence of
+debugging phase — the phase-level cousin of the behavioral channel's
+substring false-positives (fixed there with structured patterns; no
+mechanical fix exists for narration-level judgment). Checked en route:
+momentum/stance 100%-unknown in the public store is NOT a bug — the T1
+tier rule in core/schema.py, deliberate.
+
+Open ruling (Caitlin's): does discussing/quoting failures while doing X
+count as debugging, or does phase follow the human's activity? Any
+prompt change is gated on the eval rerun rule. Variance caveat stands:
+single-window classifications are noisy; 50%-vs-baseline is a day-level
+signal, not proof for any one cloud.
+
+## Media shot-list (manual captures, ongoing)
+
 Grab when convenient; store outside the repo or in a gitignored media/
 folder. ⚠ = contains real content — review before any publication use.
 
