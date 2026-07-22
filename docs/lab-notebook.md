@@ -173,6 +173,23 @@ prompt change is gated on the eval rerun rule. Variance caveat stands:
 single-window classifications are noisy; 50%-vs-baseline is a day-level
 signal, not proof for any one cloud.
 
+## 2026-07-22 — ruling deployed; a purge lesson about granularity
+
+Caitlin ruled (easy call, eval-gate consciously waived): quoted/discussed
+failure while building or documenting is NOT debugging; phase follows the
+activity. Translated into v4.md's debugging definition, cited in place.
+Verification by purge + re-extract of the polluted day surfaced a
+METHOD lesson: rolling windows are an artifact of live extraction —
+re-extracting yesterday after a purge collapses ~74 incremental windows
+into ~2 segment-sized ones (covered_until was empty, so each segment
+extracted as one big window). Granularity cannot be recreated after the
+fact; purges trade resolution for correctness. The 2 coarse re-labels:
+1 shaping, 1 debugging (the day genuinely contained real debugging — the
+dead widget, the 401s — so orange surviving is honest). The live signal
+under the new prompt: today's rolling windows so far are 75% building /
+12% shaping / 12% debugging while sessions still quote yesterday's
+errors. Real verdict accumulates over the next error-quoting workdays.
+
 ## Media shot-list (manual captures, ongoing)
 
 Grab when convenient; store outside the repo or in a gitignored media/
