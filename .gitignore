@@ -33,3 +33,6 @@ dist/
 
 # per-board token-hash files (hashes only, never tokens)
 presence/relay/worker/hashes.*.json
+
+# personal writeups (website/substack) — not repo material
+docs/writeups/
