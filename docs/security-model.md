@@ -5,7 +5,7 @@ what gets shared and how security is implemented. If the code and this
 doc ever disagree, that's a bug — tell Caitlin
 ([caitlinmorris.net](https://caitlinmorris.net)).*
 
-## The one object that crosses the boundary
+## What gets shared from your computer to the relay?
 
 Everything the system shares about you is contained in this JSON object,
 pushed from your laptop to the relay every few minutes while you work:
@@ -29,14 +29,19 @@ pushed from your laptop to the relay every few minutes while you work:
 What the topic fields carry depends on that room's **tier**, chosen
 per board and visible to all its members:
 
-- **presence** — no "what" at all: topic fields empty, phase withheld.
+- **presence** — no "what" at all: topic fields are empty and the
+  work-type color is withheld; only abstract presence (that someone is
+  around, and their rhythm) is shared.
 - **topic** (default) — the ≤5-word micro-phrase and tags, as above.
 - **verbose** (opt-in rooms only) — `topic_gist` additionally carries a
-  fuller ≤15-word description of the work.
+  fuller ≤15-word description of the work. This mode is currently only
+  being tested in rooms with Caitlin (we.ather dev) directly in the
+  loop — if you're setting up your own board from a download, this
+  option is not enabled. Get in touch if you want to use a more verbose
+  version!
 
-That's the complete list. There is no message content, no file names, no
-code, no error text, no momentum/stuckness field (that tier is not currently
-shared at all), no evidence or reasoning. The relay **rejects** any payload
+That's it. There is no message content, no file names, no code, no
+error text, no evidence or reasoning. The relay **rejects** any payload
 containing fields beyond these — enforcement is server-side, not client
 courtesy.
 
@@ -82,13 +87,15 @@ one poll cycle (~minutes): your relay state is purged, ring buffer included,
 and you render as ordinary "away" — indistinguishable from simply not
 working. Nobody is notified. Local capture stops until you resume.
 
-## What this design does NOT protect against — read before opting in
+## What this design does NOT protect against
 
 1. **The extractor being too honest.** The most realistic failure is a
    generated gist that says more than you'd want — the model is instructed
    and evaluated on discretion, and every field is length-capped, but this
-   is a model-behavior risk, not a solved problem. Screenshots of bad gists
-   are wanted data and grounds for tightening.
+   is a model-behavior risk, not a solved problem. It's possible that a
+   gist like "planning birthday surprise for husband" would be shared, if
+   that's an accurate description of what you're doing :) Screenshots of
+   bad gists are wanted data and grounds for tightening.
 2. **Small-group inference.** In a group of two or three, "quiet" identifies
    who isn't working, and presence rhythms reveal when you work. No
    cryptography fixes this; it's mitigated only by consent, the visible
