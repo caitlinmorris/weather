@@ -114,6 +114,22 @@ def update_env(updates: dict, env_path: Path | None = None) -> None:
     path.chmod(0o600)
 
 
+def install_epoch():
+    """Consent starts the clock (Caitlin ruling, 2026-07-27): sessions
+    from before PRESENCE_START are never extracted or analyzed. The
+    installer stamps it at install time; installs predating the ruling
+    have no stamp and behave as before."""
+    from datetime import datetime
+
+    raw = env_value("PRESENCE_START")
+    if not raw:
+        return None
+    try:
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
 def verbose_enabled() -> bool:
     """Whether the 'verbose' tier (full gist on the wire, third dial
     level) is surfaced. Unlocked by membership in a verbose room — the

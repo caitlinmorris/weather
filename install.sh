@@ -60,6 +60,7 @@ elif [ -f .env ]; then
     read -r -p "Warp folders to observe (absolute paths, comma-separated): " WARP_ALLOW
     printf 'PRESENCE_ALLOWLIST_WARP=%s\n' "$WARP_ALLOW" >> .env
   fi
+  printf 'PRESENCE_START=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" >> .env
   chmod 600 .env
   echo "consent recorded in .env"
 else
@@ -137,6 +138,7 @@ PRESENCE_GROUP_MODE=person
 PRESENCE_SOURCES=$SOURCES
 PRESENCE_ALLOWLIST=$ALLOW
 PRESENCE_ALLOWLIST_WARP=$WARP_ALLOW
+PRESENCE_START=$(date -u +%Y-%m-%dT%H:%M:%S+00:00)
 EOF
   if [ -n "$BOARDNAME" ]; then
     # Canonical per-board form (PRESENCE_BOARDS roster + suffixed keys) —

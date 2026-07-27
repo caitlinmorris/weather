@@ -160,3 +160,18 @@ def test_wire_tiers_gist_only_on_verbose():
     assert verbose["topic_gist"].startswith("a fifteen")
     presence = to_wire(state, tier="presence")
     assert presence["topic_micro"] == "" and presence["topic_tags"] == []
+
+
+def test_epoch_clamp_consent_starts_the_clock():
+    from datetime import datetime, timezone
+    from presence.pipeline.extract_all import epoch_clamp
+
+    t = lambda h: datetime(2026, 7, 27, h, 0, tzinfo=timezone.utc)
+    # no epoch (pre-ruling installs): unchanged behavior
+    assert epoch_clamp(None, t(10), None) == (False, None)
+    # segment fully before install: skipped entirely
+    assert epoch_clamp(None, t(10), t(12)) == (True, None)
+    # segment straddling install: extraction floored at the epoch
+    assert epoch_clamp(None, t(14), t(12)) == (False, t(12))
+    # already-covered past the epoch: covered wins
+    assert epoch_clamp(t(13), t(14), t(12)) == (False, t(13))

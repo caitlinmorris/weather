@@ -56,8 +56,14 @@ def bootstrap_page() -> None:
     existing history may take a few minutes; if it fails (no key, no
     transcripts yet), open with an honest empty field — the watch loop
     fills it in as work happens."""
-    print("first run: building your page (extracting existing history — "
-          "this can take a few minutes)…")
+    from presence.pipeline.config import install_epoch
+
+    if install_epoch() is not None:
+        print("first run: your weather starts now — sessions from before "
+              "install are never analyzed.")
+    else:
+        print("first run: building your page (extracting existing history — "
+              "this can take a few minutes)…")
     from presence.pipeline import extract_all
     from presence.pipeline.config import PUBLIC_DB
     from presence.pipeline.store import PublicStore

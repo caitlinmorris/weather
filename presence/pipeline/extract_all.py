@@ -24,9 +24,23 @@ from presence.extract.extractor import (
     extraction_backend,
     load_api_key,
 )
-from presence.pipeline.config import PRIVATE_DB, PUBLIC_DB
+from presence.pipeline.config import PRIVATE_DB, PUBLIC_DB, install_epoch
 from presence.pipeline.sample_extract import MIN_MINUTES, gather_segments
 from presence.pipeline.store import PrivateStore
+
+
+def epoch_clamp(covered, seg_end, epoch):
+    """Apply the consent epoch: a segment that ended before PRESENCE_START
+    is skipped entirely; one straddling it extracts only events after the
+    epoch (by flooring `covered` there). Pre-install history is never
+    analyzed — consent starts the clock (Caitlin ruling, 2026-07-27)."""
+    if epoch is None:
+        return False, covered
+    if seg_end <= epoch:
+        return True, covered
+    if covered is None or covered < epoch:
+        covered = epoch
+    return False, covered
 
 
 def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
@@ -57,6 +71,10 @@ def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
             # extracted under older prompt versions is left standing; no
             # mass re-extraction on version bumps.)
             covered = private.covered_until(person, start, end)
+            skip, covered = epoch_clamp(covered, seg.t_end, install_epoch())
+            if skip:
+                counts["skipped"] += 1
+                continue
             if covered is not None and covered >= seg.t_end:
                 counts["skipped"] += 1
                 continue

@@ -44,9 +44,9 @@ we.ather may observe**. That list is your consent boundary; nothing
 outside it is ever read. The self-test checks every layer without making
 paid model calls.
 
-The app's **first launch builds its own page**: it extracts your existing
-history first, which takes a few minutes and costs a dollar or two (or a
-slice of your plan's usage). Later launches are instant.
+**Your weather starts at install.** Nothing from before you installed is
+ever analyzed — the first launch opens an honest, empty field ("still
+air"), and your weather appears as you work. Consent starts the clock.
 
 ## Checking and changing what's observed
 
