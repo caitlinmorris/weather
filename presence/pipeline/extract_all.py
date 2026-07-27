@@ -18,7 +18,12 @@ import sys
 from datetime import datetime
 
 from presence.core import rollup
-from presence.extract.extractor import ExtractionError, Extractor, load_api_key
+from presence.extract.extractor import (
+    ExtractionError,
+    Extractor,
+    extraction_backend,
+    load_api_key,
+)
 from presence.pipeline.config import PRIVATE_DB, PUBLIC_DB
 from presence.pipeline.sample_extract import MIN_MINUTES, gather_segments
 from presence.pipeline.store import PrivateStore
@@ -26,7 +31,7 @@ from presence.pipeline.store import PrivateStore
 
 def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
     """One extract-and-publish pass. Returns counts for the caller's log line."""
-    if not load_api_key():
+    if extraction_backend() != "claude_cli" and not load_api_key():
         raise ExtractionError("no ANTHROPIC_API_KEY in environment or .env")
 
     private = PrivateStore(PRIVATE_DB)

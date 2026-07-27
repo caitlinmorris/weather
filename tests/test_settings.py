@@ -117,3 +117,25 @@ def test_rename_host_files_moves_cf_board_files(tmp_path, monkeypatch):
     assert (tmp_path / "wrangler.family.toml").is_file()
     assert (tmp_path / "hashes.family.json").is_file()
     assert not (tmp_path / "wrangler.dan.toml").exists()
+
+
+def test_settings_to_env_extractor_choice():
+    base = {"person_id": "c", "api_key": "", "sources": [],
+            "claude_allowlist": [], "warp_allowlist": [], "debug": False,
+            "boards": []}
+    cli = settings_to_env({**base, "extractor": "claude_cli"}, current_boards=[])
+    assert cli["PRESENCE_EXTRACTOR"] == "claude_cli"
+    api = settings_to_env({**base, "extractor": "api"}, current_boards=[])
+    assert api["PRESENCE_EXTRACTOR"] is None  # default stays out of .env
+
+
+def test_cli_envelope_parsing():
+    import pytest
+    from presence.extract.cli_client import parse_cli_envelope
+
+    assert parse_cli_envelope('{"result": "{\\"phase\\": \\"building\\"}"}') \
+        == '{"phase": "building"}'
+    with pytest.raises(ValueError, match="error"):
+        parse_cli_envelope('{"is_error": true, "result": "limit reached"}')
+    with pytest.raises(ValueError, match="no text result"):
+        parse_cli_envelope('{"cost_usd": 0.01}')

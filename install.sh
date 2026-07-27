@@ -67,7 +67,24 @@ else
   echo "Your short name must EXACTLY match the name your relay token was"
   echo "registered under (ask Caitlin — or whoever sent you this — if unsure)."
   read -r -p "your short name (lowercase, e.g. dan): " PERSON
-  read -r -p "Anthropic API key (starts sk-ant-, from whoever sent you this): " APIKEY
+
+  echo
+  echo "How should the small AI model that summarizes your work be billed?"
+  echo "  1) my Anthropic API key (works for everyone; pennies per workday)"
+  echo "  2) my Claude subscription — uses your existing Claude Code login"
+  echo "     (needs Claude Code installed + a Pro/Max plan; no API key)"
+  read -r -p "choice [1/2] (default 1): " BILLING
+  BILLING=${BILLING:-1}
+  APIKEY=""
+  EXTRACTOR=""
+  if [ "$BILLING" = "2" ]; then
+    EXTRACTOR="claude_cli"
+    command -v claude >/dev/null 2>&1 \
+      || echo "note: no 'claude' CLI found on PATH — install Claude Code" \
+              "before first run, or switch to an API key in settings later."
+  else
+    read -r -p "Anthropic API key (starts sk-ant-, from whoever sent you this): " APIKEY
+  fi
   read -r -p "relay URL (https://..., or leave empty for local-only): " RELAYURL
   RELAYTOK=""
   if [ -n "$RELAYURL" ]; then
@@ -118,6 +135,9 @@ PRESENCE_ALLOWLIST_WARP=$WARP_ALLOW
 RELAY_URL=$RELAYURL
 RELAY_TOKEN=$RELAYTOK
 EOF
+  if [ -n "$EXTRACTOR" ]; then
+    printf 'PRESENCE_EXTRACTOR=%s\n' "$EXTRACTOR" >> .env
+  fi
   chmod 600 .env
   echo ".env written (permissions 600)"
 fi

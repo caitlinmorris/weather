@@ -49,6 +49,14 @@ ENUM_FIELDS = {
 }
 
 
+def extraction_backend() -> str:
+    """'api' (default: Anthropic API on the person's key) or 'claude_cli'
+    (bills to their Claude subscription via the local claude CLI)."""
+    from presence.pipeline.config import env_value
+
+    return env_value("PRESENCE_EXTRACTOR") or "api"
+
+
 def load_api_key() -> str | None:
     """ANTHROPIC_API_KEY from the environment, else from repo-root .env."""
     key = os.environ.get("ANTHROPIC_API_KEY")
@@ -129,14 +137,19 @@ class Extractor:
         prompt_version: str = DEFAULT_PROMPT_VERSION,
     ):
         if client is None:
-            import anthropic
+            if extraction_backend() == "claude_cli":
+                from presence.extract.cli_client import ClaudeCliClient
 
-            key = load_api_key()
-            if not key:
-                raise ExtractionError(
-                    "No ANTHROPIC_API_KEY found in environment or .env at repo root"
-                )
-            client = anthropic.Anthropic(api_key=key)
+                client = ClaudeCliClient()
+            else:
+                import anthropic
+
+                key = load_api_key()
+                if not key:
+                    raise ExtractionError(
+                        "No ANTHROPIC_API_KEY found in environment or .env at repo root"
+                    )
+                client = anthropic.Anthropic(api_key=key)
         self.client = client
         self.model = model
         self.system_prompt = load_system_prompt(prompt_version)

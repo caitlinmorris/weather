@@ -61,10 +61,26 @@ def main() -> None:
                 report(PASS if events else FAIL,
                        f"parsed newest transcript: {len(events)} events (structure only)")
 
-    report(
-        PASS if config.env_value("ANTHROPIC_API_KEY") else FAIL,
-        "ANTHROPIC_API_KEY " + ("present" if config.env_value("ANTHROPIC_API_KEY") else "missing from .env"),
-    )
+    from presence.extract.extractor import extraction_backend
+
+    if extraction_backend() == "claude_cli":
+        from presence.extract.cli_client import find_claude
+
+        exe = find_claude()
+        report(
+            PASS if exe else FAIL,
+            "extraction billing: Claude subscription "
+            + (f"(claude CLI: {exe})" if exe
+               else "— but no claude CLI found; install Claude Code or"
+                    " switch to an API key in settings"),
+        )
+    else:
+        report(
+            PASS if config.env_value("ANTHROPIC_API_KEY") else FAIL,
+            "extraction billing: API key "
+            + ("present" if config.env_value("ANTHROPIC_API_KEY")
+               else "— ANTHROPIC_API_KEY missing from .env"),
+        )
 
     # Extraction harness end-to-end on synthetic data, zero API cost.
     try:

@@ -17,6 +17,18 @@ from presence.pipeline import config
 WIZARD_REQUIRED = ("ANTHROPIC_API_KEY", "PRESENCE_PERSON_ID")
 
 
+def wizard_needed() -> bool:
+    """First-run settings: identity always required; a way to bill
+    extraction required (API key, unless billing is the subscription)."""
+    from presence.extract.extractor import extraction_backend
+
+    if not config.env_value("PRESENCE_PERSON_ID"):
+        return True
+    if extraction_backend() == "claude_cli":
+        return False
+    return not config.env_value("ANTHROPIC_API_KEY")
+
+
 def settings_snapshot() -> dict:
     """Current settings for the GUI — secrets reported as presence only."""
     from presence.relay.invite import board_backend
@@ -31,9 +43,14 @@ def settings_snapshot() -> dict:
             # non-None means this machine can mint invites for the room
             "hosted_backend": board_backend(b),
         })
+    from presence.extract.cli_client import find_claude
+    from presence.extract.extractor import extraction_backend
+
     return {
         "person_id": config.env_value("PRESENCE_PERSON_ID") or "",
         "has_api_key": bool(config.env_value("ANTHROPIC_API_KEY")),
+        "extractor": extraction_backend(),
+        "claude_cli_available": find_claude() is not None,
         "sources": [s.strip() for s in
                     (config.env_value("PRESENCE_SOURCES") or "claude_code").split(",")
                     if s.strip()],
@@ -57,6 +74,10 @@ def settings_to_env(payload: dict, current_boards: list[dict]) -> dict:
     key — renaming must never orphan a credential."""
     updates: dict = {
         "PRESENCE_PERSON_ID": (payload.get("person_id") or "").strip() or None,
+        # default backend (api) keeps .env clean of the key entirely
+        "PRESENCE_EXTRACTOR": ("claude_cli"
+                               if payload.get("extractor") == "claude_cli"
+                               else None),
         "PRESENCE_SOURCES": ",".join(payload.get("sources") or ["claude_code"]),
         "PRESENCE_ALLOWLIST": ",".join(payload.get("claude_allowlist") or []),
         "PRESENCE_ALLOWLIST_WARP": ",".join(payload.get("warp_allowlist") or []),

@@ -83,8 +83,8 @@ def main() -> None:
     worker = threading.Thread(target=watch.main, daemon=True)
     worker.start()
 
-    from presence.pipeline.config import boards, env_value
-    from presence.render.settings_api import SettingsApi, WIZARD_REQUIRED
+    from presence.pipeline.config import boards
+    from presence.render.settings_api import SettingsApi, wizard_needed
 
     api = SettingsApi()
     room_count = max(1, len(boards()))
@@ -98,7 +98,7 @@ def main() -> None:
         on_top=True,
         resizable=True,
     )
-    if any(not env_value(k) for k in WIZARD_REQUIRED):
+    if wizard_needed():
         # First-run wizard: settings opens alongside the (empty) widget.
         webview.start(api.open_settings)
     else:

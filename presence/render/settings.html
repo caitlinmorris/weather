@@ -53,7 +53,12 @@
   <label class="row">person id
     <input type="text" id="person" class="narrow" placeholder="lowercase name">
   </label>
-  <label class="row">API key
+  <div style="margin:6px 0 2px">extraction runs on:</div>
+  <label class="row"><input type="radio" name="extractor" id="ext_api" value="api">
+    my Anthropic API key</label>
+  <label class="row"><input type="radio" name="extractor" id="ext_cli" value="claude_cli">
+    my Claude subscription <span class="hint" id="clihint"></span></label>
+  <label class="row" id="apikeyRow">API key
     <input type="password" id="apikey" placeholder="">
   </label>
   <div class="hint" id="keyhint"></div>
@@ -200,6 +205,7 @@ function collect() {
   return {
     person_id: document.getElementById("person").value,
     api_key: document.getElementById("apikey").value,
+    extractor: document.getElementById("ext_cli").checked ? "claude_cli" : "api",
     sources,
     claude_allowlist: claude,
     warp_allowlist: S.warp_allowlist,
@@ -222,6 +228,25 @@ async function init() {
   document.getElementById("keyhint").textContent = S.has_api_key
     ? "key is set — leave blank to keep it" : "no key set yet";
   document.getElementById("apikey").placeholder = S.has_api_key ? "●●●" : "sk-ant-…";
+  // Billing choice: the subscription option needs a local Claude Code login.
+  const extCli = document.getElementById("ext_cli");
+  (S.extractor === "claude_cli" ? extCli
+   : document.getElementById("ext_api")).checked = true;
+  if (!S.claude_cli_available) {
+    extCli.disabled = true;
+    document.getElementById("clihint").textContent =
+      "(needs Claude Code installed + logged in — not found)";
+  } else {
+    document.getElementById("clihint").textContent =
+      "(uses your Claude Code login; no API key needed)";
+  }
+  const syncKeyRow = () => {
+    document.getElementById("apikeyRow").style.opacity =
+      extCli.checked ? 0.45 : 1;
+  };
+  document.querySelectorAll('input[name="extractor"]')
+    .forEach(r => r.onchange = syncKeyRow);
+  syncKeyRow();
   document.getElementById("src_claude").checked = S.sources.includes("claude_code");
   document.getElementById("src_warp").checked = S.sources.includes("warp");
   document.getElementById("debug").checked = S.debug;
