@@ -207,6 +207,22 @@ dist package (make_dist.sh, ~100KB), and a guard after a real loss:
 generated dist copies got hand-edited, a rebuild ate the edits — the
 script now refuses to clobber never-committed content.
 
+## 2026-07-27 (later) — consent starts the clock
+
+Caitlin, watching her own weeks-old chats populate a fresh install: "it
+feels a little odd to include things from prior to the consent state."
+Ruling: no pre-install history is ever analyzed. The backfill was V0.1
+replay-first heritage — the live field's 4h window never needed it, and
+its only dist-user value (earlier-today) wasn't worth analyzing
+pre-consent sessions at cost during the exact moment trust is being
+decided. PRESENCE_START stamped at install; epoch_clamp in extract_all;
+first launch now opens honest still air. Bonus: kills the slowest, most
+expensive step of onboarding. Open edge (flagged, not decided): a
+folder allowlisted LATER still extracts back to the global epoch —
+per-folder consent timestamps would close it if it matters.
+
+## Media shot-list (manual captures, ongoing)
+
 Grab when convenient; store outside the repo or in a gitignored media/
 folder. ⚠ = contains real content — review before any publication use.
 
