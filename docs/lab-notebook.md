@@ -190,7 +190,22 @@ under the new prompt: today's rolling windows so far are 75% building /
 12% shaping / 12% debugging while sessions still quote yesterday's
 errors. Real verdict accumulates over the next error-quoting workdays.
 
-## Media shot-list (manual captures, ongoing)
+## 2026-07-27 — the wire now matches the writing: "verbose" tier
+
+Prep for wider distribution surfaced a docs-vs-wire gap: the dial's
+topic+ level looked like the overshare, but the dial is display-only —
+tier "topic" was already transmitting the full 15-word gist to every
+room, while the writeups promise "a five-word gist." Ruling (Caitlin):
+fix at the wire. Tier "topic" now sends micro+tags only; a new
+per-board tier — her name: **verbose** — carries the full gist.
+Surfacing is membership-gated (the invite's tier line unlocks the dial
+level and dropdown option), so dist users who never join a verbose room
+never see it, and no forked build exists. Her boards flipped to verbose
+to preserve the close-friends pilot. Also shipped: subscription-billed
+extraction via the claude CLI (install-time + GUI choice), the minimal
+dist package (make_dist.sh, ~100KB), and a guard after a real loss:
+generated dist copies got hand-edited, a rebuild ate the edits — the
+script now refuses to clobber never-committed content.
 
 Grab when convenient; store outside the repo or in a gitignored media/
 folder. ⚠ = contains real content — review before any publication use.
