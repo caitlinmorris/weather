@@ -13,11 +13,10 @@ pushed from your laptop to the relay every few minutes while you work:
 {
   "person_id": "dan",
   "updated_at": "2026-07-08T14:20:00Z",
-  "topic_gist": "chasing a clock-mocking bug in a test suite",
+  "topic_gist": "",
   "topic_micro": "debugging auth tests",
   "topic_tags": ["auth", "testing", "time-mocking"],
   "phase": "debugging",
-  "openness": "heads_down",
   "staleness_hours": 0.1,
   "last_active": "2026-07-08T14:20:00Z"
 }
@@ -25,6 +24,14 @@ pushed from your laptop to the relay every few minutes while you work:
 
 (`last_active` is a presence heartbeat derived from transcript file
 *timestamps* only — when your tool last wrote anything, never what.)
+
+What the topic fields carry depends on that room's **tier**, chosen
+per board and visible to all its members:
+
+- **presence** — no "what" at all: topic fields empty, phase withheld.
+- **topic** (default) — the ≤5-word micro-phrase and tags, as above.
+- **verbose** (opt-in rooms only) — `topic_gist` additionally carries a
+  fuller ≤15-word description of the work.
 
 That's the complete list. There is no message content, no file names, no
 code, no error text, no momentum/stuckness field (that tier is not currently

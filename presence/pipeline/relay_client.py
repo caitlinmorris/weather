@@ -37,6 +37,11 @@ def to_wire(state: PersonState, tier: str = "topic") -> dict:
         # Presence-only board: heartbeat and rhythm, no "what" at all.
         wire.update(topic_gist="", topic_micro="", topic_tags=[],
                     phase="unknown")
+    elif tier != "verbose":
+        # Standard "topic" tier transmits exactly what the docs promise:
+        # the <=5-word micro + tags. The full 15-word gist crosses only
+        # on boards that opted into the "verbose" tier (Caitlin, 2026-07-27).
+        wire.update(topic_gist="")
     return wire
 
 

@@ -151,7 +151,9 @@ def test_to_wire_strips_private_tier_fields():
     payload = to_wire(state)
     assert "momentum" not in payload and "stance" not in payload
     assert "trajectory" not in payload
-    assert payload["topic_gist"] == "synthetic status"
+    # Default (topic) tier: the full gist stays home; verbose rooms opt in.
+    assert payload["topic_gist"] == ""
+    assert to_wire(state, tier="verbose")["topic_gist"] == "synthetic status"
 
 
 def test_wire_payload_is_accepted_by_relay(client):

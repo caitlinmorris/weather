@@ -22,7 +22,7 @@ There are two completely separate credentials:
 
 1. **Relay tokens** (per member, per board): access passes to a board.
    Minted by the host, handed to members privately. Free.
-2. **Extraction billing** (per person): the small model calls that turn
+2. **Extraction billing** (per person): the small model calls (Haiku) that turn
    your own AI-session transcripts into your shareable state — they run
    from your own machine, and you choose at install (changeable any time
    in settings) how they're billed:
@@ -46,7 +46,7 @@ There are two completely separate credentials:
 | Your extraction (Claude-subscription option) | $0 extra; uses plan limits |
 | The software                                 | free, source included |
 
-For reference: Caitlin (dev) has been running this for most of a workday at 5x usage ("dev mode" = extracts every 60 seconds; default is 5 minutes) and running a total of about 80 cents on API for heavy coding days.
+For reference: Caitlin (we.ather dev) has been running this for most of a workday at 5x usage ("dev mode" = extracts every 60 seconds; default is 5 minutes) and running a total of about 80 cents on API for heavy coding days.
 
 ## Setup (host, ~20 minutes)
 

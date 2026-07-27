@@ -154,11 +154,16 @@ const THEMES = {
   },
 };
 
+// The "verbose" dial level (full gist + tags on hover) exists only when
+// unlocked — by membership in a verbose-tier room or PRESENCE_VERBOSE=1.
+// What it can show is still bounded by each sender's board tier.
+const VERBOSE = __VERBOSE__;
 const LEVELS = [
   { key: "presence", micro: false, tags: false, gist: false, name: false },
   { key: "topic", micro: true, tags: false, gist: false, name: false },
-  { key: "topic+", micro: true, tags: true, gist: true, name: true },
 ];
+if (VERBOSE) LEVELS.push(
+  { key: "verbose", micro: true, tags: true, gist: true, name: true });
 const prefs = window.localStorage;
 let level = Math.min(+(prefs.getItem("presence.level") ?? 1), LEVELS.length - 1);
 let theme = prefs.getItem("presence.theme") === "light" ? "light" : "dark";

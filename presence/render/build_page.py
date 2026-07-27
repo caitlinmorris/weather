@@ -112,6 +112,8 @@ def build(
     payload = json.dumps(data).replace("</", "<\\/")
     html = TEMPLATE.read_text().replace("__DATA__", payload)
     html = html.replace("__BOARDS__", json.dumps(boards))
+    html = html.replace("__VERBOSE__",
+                        "true" if config.verbose_enabled() else "false")
     out.write_text(html)
     return out
 

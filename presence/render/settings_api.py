@@ -62,6 +62,7 @@ def settings_snapshot() -> dict:
                            (config.env_value("PRESENCE_ALLOWLIST_WARP") or "").split(",")
                            if p.strip()],
         "debug": config.env_value("PRESENCE_DEBUG") == "1",
+        "verbose_available": config.verbose_enabled(),
         "boards": boards,
     }
 

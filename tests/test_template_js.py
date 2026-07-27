@@ -25,6 +25,7 @@ def test_template_js_parses(template, tmp_path):
     for i, script in enumerate(scripts):
         stubbed = (script.replace("__DATA__", "[]")
                          .replace("__BOARDS__", "[]")
+                         .replace("__VERBOSE__", "false")
                          .replace("__BUILT__", '"x"'))
         js = tmp_path / f"{template.stem}_{i}.js"
         js.write_text(stubbed)

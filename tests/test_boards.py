@@ -1,6 +1,7 @@
 import importlib
 import json
 import time
+from pathlib import Path
 
 from presence.core.schema import Momentum, PersonState, Phase
 from presence.pipeline.relay_client import to_wire
@@ -13,7 +14,12 @@ def _reload_config(monkeypatch, **env):
     for k, v in env.items():
         monkeypatch.setenv(k, v)
     import presence.pipeline.config as config
-    return importlib.reload(config)
+    config = importlib.reload(config)
+    # Hermetic: unstubbed keys must not fall through to the repo's real
+    # .env (this leaked once — a tier default assertion passed only
+    # because the dev machine's .env happened to agree).
+    monkeypatch.setattr(config, "REPO_ROOT", Path("/nonexistent-hermetic"))
+    return config
 
 
 def test_boards_multi(monkeypatch):
@@ -55,8 +61,10 @@ def test_presence_tier_strips_all_what():
     assert wire["topic_tags"] == [] and wire["phase"] == "unknown"
     assert wire["last_active"] is None and "momentum" not in wire
     assert "openness" not in wire  # killed in v1.0
-    # topic tier keeps the what
-    assert to_wire(state, tier="topic")["topic_gist"] == "secret gist"
+    # topic tier keeps the micro-what; the full gist is verbose-only
+    assert to_wire(state, tier="topic")["topic_micro"] == "doing things"
+    assert to_wire(state, tier="topic")["topic_gist"] == ""
+    assert to_wire(state, tier="verbose")["topic_gist"] == "secret gist"
 
 
 def test_composite_merge_tags_boards_and_dedups(tmp_path, monkeypatch):

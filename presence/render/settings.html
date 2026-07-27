@@ -144,11 +144,17 @@ function renderBoards() {
     const url = el("input", { type: "text", value: b.url || "", placeholder: "relay url" });
     const token = el("input", { type: "password", value: "",
       placeholder: b.has_token ? "●●● (set — type to replace)" : "token" });
-    const tier = el("select", {},
+    const tierOpts = [
       el("option", { value: "topic", textContent: "topic",
-                     selected: b.tier !== "presence" }),
+                     selected: b.tier !== "presence" && b.tier !== "verbose" }),
       el("option", { value: "presence", textContent: "presence",
-                     selected: b.tier === "presence" }));
+                     selected: b.tier === "presence" }),
+    ];
+    // "verbose" (full gist) surfaces only when unlocked — see config.
+    if (S.verbose_available || b.tier === "verbose") tierOpts.push(
+      el("option", { value: "verbose", textContent: "verbose",
+                     selected: b.tier === "verbose" }));
+    const tier = el("select", {}, ...tierOpts);
     const rm = el("button", { textContent: "leave", className: "danger" });
     rm.onclick = () => {
       if (confirm(`Leave room '${b.name}'? Your state there ages out;` +

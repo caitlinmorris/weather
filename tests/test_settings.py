@@ -139,3 +139,24 @@ def test_cli_envelope_parsing():
         parse_cli_envelope('{"is_error": true, "result": "limit reached"}')
     with pytest.raises(ValueError, match="no text result"):
         parse_cli_envelope('{"cost_usd": 0.01}')
+
+
+def test_wire_tiers_gist_only_on_verbose():
+    # The docs promise: topic tier = micro + tags; the 15-word gist
+    # crosses only on verbose rooms; presence carries no "what" at all.
+    from datetime import datetime, timezone
+    from presence.core.schema import PersonState
+    from presence.pipeline.relay_client import to_wire
+
+    state = PersonState(
+        person_id="t", updated_at=datetime.now(timezone.utc),
+        topic_gist="a fifteen word description of the work",
+        topic_micro="short phrase", topic_tags=["a", "b"],
+    )
+    topic = to_wire(state, tier="topic")
+    assert topic["topic_gist"] == "" and topic["topic_micro"] == "short phrase"
+    assert topic["topic_tags"] == ["a", "b"]
+    verbose = to_wire(state, tier="verbose")
+    assert verbose["topic_gist"].startswith("a fifteen")
+    presence = to_wire(state, tier="presence")
+    assert presence["topic_micro"] == "" and presence["topic_tags"] == []

@@ -114,6 +114,17 @@ def update_env(updates: dict, env_path: Path | None = None) -> None:
     path.chmod(0o600)
 
 
+def verbose_enabled() -> bool:
+    """Whether the 'verbose' tier (full gist on the wire, third dial
+    level) is surfaced. Unlocked by membership in a verbose room — the
+    invite's tier line does it — or explicitly via PRESENCE_VERBOSE=1
+    (how a host offers the tier before any such room exists). Dist
+    installs that never touch either simply never see it."""
+    if env_value("PRESENCE_VERBOSE") == "1":
+        return True
+    return any(b["tier"] == "verbose" for b in boards())
+
+
 def allowed_project_dirs() -> list[Path]:
     """Project folders under PROJECTS_ROOT that match the allowlist."""
     if not PROJECTS_ROOT.is_dir():
