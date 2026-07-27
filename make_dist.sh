@@ -15,12 +15,24 @@ OUT="dist/we.ather"
 # files against HEAD; README.md is generated, so it's exempt.
 if [ -d "$OUT" ] && [ "${FORCE:-}" != "1" ]; then
   while IFS= read -r f; do
-    if ! git show "HEAD:$f" 2>/dev/null | cmp -s - "$OUT/$f"; then
-      echo "ABORT: $OUT/$f differs from the repo version — edited in place?"
-      echo "Port changes into the repo copy first (that's the source the"
-      echo "package is built from), or rerun with FORCE=1 to discard."
-      exit 1
+    if git show "HEAD:$f" 2>/dev/null | cmp -s - "$OUT/$f"; then
+      continue  # matches current repo version
     fi
+    # A dist file that matches ANY committed version is merely stale
+    # (built before recent commits) — only never-committed content
+    # means someone edited the generated copy by hand.
+    stale=0
+    for rev in $(git rev-list -8 HEAD); do
+      if git show "$rev:$f" 2>/dev/null | cmp -s - "$OUT/$f"; then
+        stale=1; break
+      fi
+    done
+    [ "$stale" = "1" ] && continue
+    echo "ABORT: $OUT/$f contains changes that exist in no commit —"
+    echo "it was edited in place. Port them into the repo copy first"
+    echo "(that's the source the package is built from), or rerun with"
+    echo "FORCE=1 to discard them."
+    exit 1
   done < <(cd "$OUT" && find docs install.sh -type f 2>/dev/null)
 fi
 
