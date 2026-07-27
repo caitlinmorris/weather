@@ -64,8 +64,11 @@ For reference: Caitlin (we.ather dev) has been running this for most of a workda
    as "with <members>". This also mints member tokens (agree lowercase
    short names with your members first):
    ```
-   ./presence/relay/make_board_cf.sh <board-name> <you> <colleague>
+   ./presence/relay/make_board_cf.sh <board-name> <you> [others...]
    ```
+   Starting solo is fine — make the board with just yourself, watch your
+   own weather for a while, and invite people whenever you're ready
+   (settings gear → your room → invite).
 5. Put YOUR token + the printed URL in your `.env` (the script shows the
    exact lines); send your colleague theirs privately.
 6. `python -m presence.pipeline.selftest` — all green means live.

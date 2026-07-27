@@ -155,5 +155,6 @@ echo "Step away anytime:    .venv/bin/python -m presence.pipeline.pause"
 echo "What leaves your machine: docs/security-model.md (one page, read it)"
 echo
 echo "Hosting your own board? That's the next step:"
-echo "  ./presence/relay/make_board_cf.sh <board-name> <you> <friend...>"
-echo "  (full guide: docs/self-hosting.md)"
+echo "  ./presence/relay/make_board_cf.sh <board-name> <you> [friends...]"
+echo "  (just yourself is fine — invite people later from the settings gear;"
+echo "   full guide: docs/self-hosting.md)"

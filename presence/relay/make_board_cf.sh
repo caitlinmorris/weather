@@ -6,13 +6,15 @@
 # Prereqs: node (for npx), a free Cloudflare account (wrangler will open a
 # browser to log in on first use).
 #
-# Usage: ./presence/relay/make_board_cf.sh <board-name> <member1> <member2> [...]
+# Usage: ./presence/relay/make_board_cf.sh <board-name> <member1> [member2 ...]
 # e.g.:  ./presence/relay/make_board_cf.sh studio matt jo
+# A board with just yourself is fine — try the weather solo, then invite
+# people later from the settings gear (or presence.relay.invite).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-if [ $# -lt 3 ]; then
-  echo "usage: $0 <board-name> <member1> <member2> [...]"; exit 1
+if [ $# -lt 2 ]; then
+  echo "usage: $0 <board-name> <member1> [member2 ...]   (solo is fine)"; exit 1
 fi
 BOARD="$1"; shift
 WORKDIR="presence/relay/worker"
