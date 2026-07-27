@@ -29,9 +29,9 @@ pushed from your laptop to the relay every few minutes while you work:
 What the topic fields carry depends on that room's **tier**, chosen
 per board and visible to all its members:
 
-- **presence** — no "what" at all: topic fields are empty and the
-  work-type color is withheld; only abstract presence (that someone is
-  around, and their rhythm) is shared.
+- **presence** — the weather without the words: the abstract
+  visualization (work-type color, rhythm) comes through, but every
+  topic field is empty — there is nothing to hover.
 - **topic** (default) — the ≤5-word micro-phrase and tags, as above.
 - **verbose** (opt-in rooms only) — `topic_gist` additionally carries a
   fuller ≤15-word description of the work. This mode is currently only

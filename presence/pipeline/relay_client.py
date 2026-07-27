@@ -34,9 +34,10 @@ def to_wire(state: PersonState, tier: str = "topic") -> dict:
         "last_active": state.last_active.isoformat() if state.last_active else None,
     }
     if tier == "presence":
-        # Presence-only board: heartbeat and rhythm, no "what" at all.
-        wire.update(topic_gist="", topic_micro="", topic_tags=[],
-                    phase="unknown")
+        # Presence board: the weather without the words (Caitlin ruling,
+        # 2026-07-27) — work-type color and rhythm come through; every
+        # topic field is empty, so a hover has nothing to reveal.
+        wire.update(topic_gist="", topic_micro="", topic_tags=[])
     elif tier != "verbose":
         # Standard "topic" tier transmits exactly what the docs promise:
         # the <=5-word micro + tags. The full 15-word gist crosses only

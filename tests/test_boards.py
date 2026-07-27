@@ -58,7 +58,9 @@ def test_presence_tier_strips_all_what():
     )
     wire = to_wire(state, tier="presence")
     assert wire["topic_gist"] == "" and wire["topic_micro"] == ""
-    assert wire["topic_tags"] == [] and wire["phase"] == "unknown"
+    # Phase (the weather color) survives presence tier — "the weather
+    # without the words"; only topic text is withheld.
+    assert wire["topic_tags"] == [] and wire["phase"] == "debugging"
     assert wire["last_active"] is None and "momentum" not in wire
     assert "openness" not in wire  # killed in v1.0
     # topic tier keeps the micro-what; the full gist is verbose-only
