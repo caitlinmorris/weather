@@ -131,6 +131,11 @@ If you already run we.ather, the settings gear covers most of this doc:
 - **One deployment = one board.** A second room = run the script again
   with a new name. Boards are deliberately heavy-ish: rooms, not chats.
 - **Multiple boards.** You can run multiple boards simultaneously without overlapping participants - for example, one board with your family members, another with your colleagues, separately. When you have multiple boards, you'll see an option in the GUI to stack them vertically or visually fuse them into a single view (for you only — again, the members of different boards won't see each other.)
+  In `.env` terms: each board gets its own `RELAY_URL_<NAME>` /
+  `RELAY_TOKEN_<NAME>` / `PRESENCE_TIER_<NAME>` lines, and
+  `PRESENCE_BOARDS` is the comma-separated roster — joining a second
+  board means appending `,<name>` to that one line (or just use
+  settings gear → "add a room…", which does it for you).
 - **Adding a member later:** use the invite button (settings gear →
   your room) or `python -m presence.relay.invite <board> <person>` —
   either one mints the token, registers it with your relay, and hands

@@ -67,9 +67,11 @@ KEY=$(echo "$BOARD" | tr 'a-z-' 'A-Z_')
 echo
 echo "board '$BOARD' is live at: $URL"
 echo "each member's .env needs (with THEIR token from above):"
-echo "  PRESENCE_BOARDS=...existing...,$BOARD"
+echo "  PRESENCE_BOARDS=$BOARD"
 echo "  RELAY_URL_$KEY=$URL"
 echo "  RELAY_TOKEN_$KEY=<their token>"
 echo "  PRESENCE_TIER_$KEY=topic"
+echo "(already in other rooms? keep the existing PRESENCE_BOARDS line and"
+echo " just append ,$BOARD to it)"
 echo "then RESTART their app, and verify with:"
 echo "  .venv/bin/python -m presence.pipeline.selftest"

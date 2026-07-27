@@ -90,7 +90,9 @@ else
   fi
   read -r -p "relay URL (https://..., or leave empty for local-only): " RELAYURL
   RELAYTOK=""
+  BOARDNAME=""
   if [ -n "$RELAYURL" ]; then
+    read -r -p "room (board) name, from your invite: " BOARDNAME
     read -r -p "your relay token (from your board's host): " RELAYTOK
   fi
 
@@ -135,9 +137,18 @@ PRESENCE_GROUP_MODE=person
 PRESENCE_SOURCES=$SOURCES
 PRESENCE_ALLOWLIST=$ALLOW
 PRESENCE_ALLOWLIST_WARP=$WARP_ALLOW
-RELAY_URL=$RELAYURL
-RELAY_TOKEN=$RELAYTOK
 EOF
+  if [ -n "$BOARDNAME" ]; then
+    # Canonical per-board form (PRESENCE_BOARDS roster + suffixed keys) —
+    # same dialect the board script and invites speak.
+    KEY=$(echo "$BOARDNAME" | tr 'a-z-' 'A-Z_')
+    {
+      printf 'PRESENCE_BOARDS=%s\n' "$BOARDNAME"
+      printf 'RELAY_URL_%s=%s\n' "$KEY" "$RELAYURL"
+      printf 'RELAY_TOKEN_%s=%s\n' "$KEY" "$RELAYTOK"
+      printf 'PRESENCE_TIER_%s=topic\n' "$KEY"
+    } >> .env
+  fi
   if [ -n "$EXTRACTOR" ]; then
     printf 'PRESENCE_EXTRACTOR=%s\n' "$EXTRACTOR" >> .env
   fi
