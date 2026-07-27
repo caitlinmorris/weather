@@ -66,12 +66,14 @@ no signup surface.
 
 ## The extraction path (the one real data flow off-device)
 
-To produce the state object, transcript excerpts are sent over TLS to the
-Anthropic API under the study's spend-capped key. If you use Claude Code,
-this adds no new reader — the same party already processes your sessions.
-If you use another tool (Codex, Hermes, Warp), this is a party that wouldn't
-otherwise see your work narration: opting in means accepting that. API-tier
-data is not used for model training under Anthropic's commercial terms.
+To produce the state object, transcript excerpts are sent over TLS to
+Anthropic — under your own API key, or via your own Claude Code login if
+you chose subscription billing; either way, directly from your machine,
+with no one in between. If you use Claude Code, this adds no new reader —
+the same party already processes your sessions. If you use another tool
+(Codex, Hermes, Warp), this is a party that wouldn't otherwise see your
+work narration: opting in means accepting that. API-tier data is not used
+for model training under Anthropic's commercial terms.
 
 ## Revocation
 
