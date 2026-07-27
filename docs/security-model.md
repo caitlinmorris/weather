@@ -1,8 +1,9 @@
 # Security Model — What Leaves Your Machine
 
-*One page, participant-facing. This is the document a friend reads before
-opting in, and the checklist the code is audited against. If the code and
-this page ever disagree, that's a bug — tell us.*
+*Read this before installing if you'd like to understand the details of
+what gets shared and how security is implemented. If the code and this
+doc ever disagree, that's a bug — tell Caitlin
+([caitlinmorris.net](https://caitlinmorris.net)).*
 
 ## The one object that crosses the boundary
 
