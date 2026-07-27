@@ -69,6 +69,17 @@ launch and waits for you to review.
 .venv/bin/python -m presence.render.app
 ```
 
+**Prefer a Dock icon?** One-time setup:
+
+```
+.venv/bin/python -m presence.render.make_app
+```
+
+That creates **we.ather.app** in your `~/Applications` folder. Open it
+once, then right-click its Dock icon → Options → **Keep in Dock** (add
+**Open at Login** if you want it always-on). If you ever move the
+we.ather folder, rerun that command.
+
 One small window, designed for the corner of your screen. Hue = kind of
 work, right edge = now, the last 4 hours trail off to the left. The field
 itself attributes nothing to anyone. Hovering an outlined block is the
@@ -98,8 +109,9 @@ edit `.env` by hand instead, restart the app afterward.
 - The extractor will sometimes be wrong or clumsy. A screenshot of a bad or
   over-sharing gist is *wanted data* — send it to whoever invited you;
   don't be polite about it.
-- This is an early beta: expect an occasional feedback question from your
-  host or from Caitlin. That's the whole measurement burden.
+- This is an early beta: feel free to reach out to your board host or
+  Caitlin with any questions, issues, comments, or ideas. Thanks for
+  trying it out!
 
 ## Who runs this room
 

@@ -69,8 +69,11 @@ For reference: Caitlin (we.ather dev) has been running this for most of a workda
 5. Put YOUR token + the printed URL in your `.env` (the script shows the
    exact lines); send your colleague theirs privately.
 6. `python -m presence.pipeline.selftest` — all green means live.
-7. Daily: `python -m presence.render.app` (or generate the Dock app:
-   `python -m presence.render.make_app`).
+7. Daily: `python -m presence.render.app`. Or make it Dock-launchable
+   (one time): `python -m presence.render.make_app` creates
+   **we.ather.app** in `~/Applications` — open it once, then right-click
+   its Dock icon → Options → **Keep in Dock** (and **Open at Login** if
+   you want it always-on). Rerun that command if you move this folder.
 
 Your colleague does steps 1, 3, and 5–7 with the token you send them —
 they never touch Cloudflare (step 2 is yours alone). Read `docs/pilot-kit.md` for the widget
