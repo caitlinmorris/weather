@@ -43,8 +43,12 @@ mkdir -p "$OUT"
 # installer, deps. Docs: exactly the three that serve a new group —
 # host guide, member guide, security model (they cross-reference only
 # each other, checked 2026-07-27).
+# tests/ ships too: selftest's zero-cost extraction-harness check imports
+# its synthetic fixtures (a dist without them FAILed that check for every
+# new user, 2026-07-27), and it lets testers run the suite themselves.
 git archive HEAD \
   presence \
+  tests \
   install.sh \
   requirements.txt \
   docs/self-hosting.md \

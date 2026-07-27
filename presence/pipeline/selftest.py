@@ -15,6 +15,10 @@ from presence.pipeline.relay_client import RelayClient
 from presence.pipeline.transcript_parser import parse_transcript
 
 PASS, FAIL, WARN = "  ok ", " FAIL", " warn"
+
+
+class _SkipCheck(Exception):
+    """Internal: a check reported its own skip; don't count it a failure."""
 failures = 0
 
 
@@ -85,8 +89,15 @@ def main() -> None:
     # Extraction harness end-to-end on synthetic data, zero API cost.
     try:
         sys.path.insert(0, str(config.REPO_ROOT))
-        from tests.synthetic import write_synthetic_transcript
-        from tests.test_extractor_harness import VALID_RESPONSE, FakeClient
+        try:
+            from tests.synthetic import write_synthetic_transcript
+            from tests.test_extractor_harness import VALID_RESPONSE, FakeClient
+        except ImportError:
+            write_synthetic_transcript = None
+        if write_synthetic_transcript is None:
+            report(WARN, "extraction harness check skipped (tests/ not in "
+                         "this package)")
+            raise _SkipCheck
         from presence.extract.extractor import Extractor
         from presence.pipeline.segmenter import segment_events
         import tempfile
@@ -100,6 +111,8 @@ def main() -> None:
                 seg, person_id="selftest"
             )
         report(PASS, f"extraction harness (synthetic, no API cost): gist='{obs.topic.gist}'")
+    except _SkipCheck:
+        pass
     except Exception as e:
         report(FAIL, f"extraction harness: {e}")
 

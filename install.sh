@@ -64,8 +64,11 @@ elif [ -f .env ]; then
   echo "consent recorded in .env"
 else
   echo
-  echo "Your short name must EXACTLY match the name your relay token was"
-  echo "registered under (ask Caitlin — or whoever sent you this — if unsure)."
+  echo "Your short name identifies you in your rooms."
+  echo "- Joining a board someone invited you to? It must EXACTLY match the"
+  echo "  name your token was registered under (ask your host if unsure)."
+  echo "- About to create your own board? Choose the name you'll register"
+  echo "  for yourself in the next step."
   read -r -p "your short name (lowercase, e.g. dan): " PERSON
 
   echo
@@ -150,3 +153,7 @@ echo
 echo "Done. Daily driver:   .venv/bin/python -m presence.render.app"
 echo "Step away anytime:    .venv/bin/python -m presence.pipeline.pause"
 echo "What leaves your machine: docs/security-model.md (one page, read it)"
+echo
+echo "Hosting your own board? That's the next step:"
+echo "  ./presence/relay/make_board_cf.sh <board-name> <you> <friend...>"
+echo "  (full guide: docs/self-hosting.md)"
