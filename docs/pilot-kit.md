@@ -55,9 +55,9 @@ checkboxes — tick or untick folders and save; the app relaunches itself
 with the change applied. The same is available from the terminal:
 
 ```
-python -m presence.pipeline.projects status   # safety check: what's observed
-python -m presence.pipeline.projects          # review newly appeared folders
-python -m presence.pipeline.projects all      # revisit everything, incl. past declines
+.venv/bin/python -m presence.pipeline.projects status   # safety check: what's observed
+.venv/bin/python -m presence.pipeline.projects          # review newly appeared folders
+.venv/bin/python -m presence.pipeline.projects all      # revisit everything, incl. past declines
 ```
 
 New folders never join silently — the app just prints a one-line notice at
@@ -66,8 +66,11 @@ launch and waits for you to review.
 ## Daily use
 
 ```
-.venv/bin/python -m presence.render.app
+./weather
 ```
+
+(That's a tiny launcher that always uses the right Python — if you see
+"No module named ..." errors, it means a bare `python` was used instead.)
 
 **Prefer a Dock icon?** One-time setup:
 
@@ -95,7 +98,7 @@ edit `.env` by hand instead, restart the app afterward.
 ## Stepping away, pausing, quitting
 
 - Closing the window stops everything; you fade to "away" within hours.
-- `python -m presence.pipeline.pause` — immediately purges your state from
+- `./weather pause` — immediately purges your state from
   the relay and stops all capture until you `pause resume`. Nobody is
   notified; pausing looks identical to simply not working.
 - Quitting entirely: run pause, delete the folder, tell your host to drop

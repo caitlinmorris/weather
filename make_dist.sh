@@ -50,6 +50,7 @@ git archive HEAD \
   presence \
   tests \
   install.sh \
+  weather \
   requirements.txt \
   docs/self-hosting.md \
   docs/pilot-kit.md \

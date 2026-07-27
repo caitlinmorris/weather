@@ -161,8 +161,8 @@ echo
 .venv/bin/python -m presence.pipeline.selftest
 
 echo
-echo "Done. Daily driver:   .venv/bin/python -m presence.render.app"
-echo "Step away anytime:    .venv/bin/python -m presence.pipeline.pause"
+echo "Done. Daily driver:   ./weather"
+echo "Step away anytime:    ./weather pause"
 echo "What leaves your machine: docs/security-model.md (one page, read it)"
 echo
 echo "Hosting your own board? That's the next step:"

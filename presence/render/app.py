@@ -16,7 +16,17 @@ import atexit
 import os
 import threading
 
-import webview
+try:
+    import webview
+except ModuleNotFoundError:
+    import sys
+
+    # The classic footgun: a conda/system python instead of the venv.
+    sys.exit(
+        "we.ather's dependencies live in this folder's virtualenv, but "
+        f"you're running {sys.executable}.\n"
+        "Launch with:  ./weather   (or .venv/bin/python -m presence.render.app)"
+    )
 
 from presence.pipeline import watch
 from presence.pipeline.config import DATA_DIR

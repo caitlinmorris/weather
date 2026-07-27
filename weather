@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# The one command: runs we.ather with the right (venv) Python, so a
+# conda/system `python` on PATH can't break anything.
+#
+#   ./weather            the widget (daily driver)
+#   ./weather selftest   check every layer, no paid calls
+#   ./weather pause      stop capture + purge your relay state
+#   ./weather resume     pick back up
+set -euo pipefail
+cd "$(dirname "$0")"
+
+if [ ! -x .venv/bin/python ]; then
+  echo "No .venv here yet — run ./install.sh first."; exit 1
+fi
+
+case "${1:-app}" in
+  app)      exec .venv/bin/python -m presence.render.app ;;
+  selftest) exec .venv/bin/python -m presence.pipeline.selftest ;;
+  pause)    exec .venv/bin/python -m presence.pipeline.pause ;;
+  resume)   exec .venv/bin/python -m presence.pipeline.pause resume ;;
+  *) echo "usage: ./weather [selftest|pause|resume]"; exit 1 ;;
+esac

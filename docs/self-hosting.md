@@ -71,8 +71,8 @@ For reference: Caitlin (we.ather dev) has been running this for most of a workda
    (settings gear → your room → invite).
 5. Put YOUR token + the printed URL in your `.env` (the script shows the
    exact lines); send your colleague theirs privately.
-6. `python -m presence.pipeline.selftest` — all green means live.
-7. Daily: `python -m presence.render.app`. Or make it Dock-launchable
+6. `./weather selftest` — all green means live.
+7. Daily: `./weather`. Or make it Dock-launchable
    (one time): `python -m presence.render.make_app` creates
    **we.ather.app** in `~/Applications` — open it once, then right-click
    its Dock icon → Options → **Keep in Dock** (and **Open at Login** if
@@ -95,8 +95,7 @@ Hypothetical friend Matt wants a board with three friends.
   `.env` lines. He sends each friend their token + lines privately.
 - **Each member (~10 min):** download → `./install.sh` (their own
   billing choice + folder consent; relay URL from Matt's message) →
-  `python -m presence.pipeline.selftest` → all green →
-  `python -m presence.render.app`.
+  `./weather selftest` → all green → `./weather`.
 
 Everyone receives exactly one private message: their invite from the
 host. If a member later wants a second board, they need a new TOKEN
@@ -141,6 +140,5 @@ If you already run we.ather, the settings gear covers most of this doc:
   either one mints the token, registers it with your relay, and hands
   you the message to send privately. Then tell your room — membership
   changes are always visible, never silent.
-- **Leaving/pausing** is every member's own right: `python -m
-  presence.pipeline.pause` purges them from your relay within a cycle,
+- **Leaving/pausing** is every member's own right: `./weather pause` purges them from your relay within a cycle,
   and pausing is indistinguishable from simply not working.
