@@ -116,6 +116,19 @@ class SettingsApi:
     def __init__(self):
         self.restart_requested = False
         self._settings_window = None
+        self.main_window = None  # set by app.py; enables window resizing
+
+    def set_rooms_shown(self, n) -> None:
+        """Resize the widget window to fit the current room view — stacked
+        needs a strip per room; fused/isolate need just one."""
+        w = self.main_window
+        if w is None:
+            return
+        try:
+            width = w.width
+        except Exception:
+            width = 432
+        w.resize(width, 248 + 94 * (max(1, int(n)) - 1))
 
     # -- called from JS ---------------------------------------------------------
 

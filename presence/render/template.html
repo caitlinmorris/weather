@@ -619,7 +619,18 @@ function setRoomMode(mode) {
   roomsBtn.textContent = mode === "stacked" ? "stacked"
     : mode === "fused" ? "fused" : (room ? room.label : mode);
   setFieldHeight();
+  syncWindowHeight();
 }
+
+// Inside the app, the native window follows the view: stacked needs a
+// strip per room, fused/isolate need one. (No-op in a plain browser and
+// before pywebview is ready — the ready handler re-syncs.)
+function syncWindowHeight() {
+  if (!window.pywebview) return;
+  window.pywebview.api.set_rooms_shown(
+    roomMode === "stacked" ? Math.max(1, ROOMS.length) : 1);
+}
+window.addEventListener("pywebviewready", syncWindowHeight);
 if (ROOM_MODES.length > 1) {
   roomsBtn.style.display = "";
   roomsBtn.onclick = () =>

@@ -88,7 +88,7 @@ def main() -> None:
 
     api = SettingsApi()
     room_count = max(1, len(boards()))
-    webview.create_window(
+    api.main_window = webview.create_window(
         "we.ather",
         url=OUT.as_uri() + "#live",
         js_api=api,
