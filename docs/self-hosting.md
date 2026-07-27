@@ -1,11 +1,10 @@
-# Self-Hosting we.ather — own your board, route through no one
+# Self-Hosting we.ather — own your own board
 
-*The guide for someone (say, Matt) who wants their own we.ather entirely
-under their own control — their board, their data paths, their costs, no
-dependence on whoever sent them this. You don't need to share a board
-with the person who introduced you to it.*
+*The guide for someone who wants their own we.ather entirely
+under their own control — their board, their data paths, etc.. You don't need to share a board
+with the person who introduced you to it (e.g. Caitlin).*
 
-## The sovereignty model, in one paragraph
+## The sovereignty model
 
 A **board** is a room of 2–12 people who see each other's work-weather.
 Every board has a **host** — a member of that room who runs its tiny
@@ -17,9 +16,9 @@ person — including whoever gave you this software — can see your room or
 its existence. Operator disclosure still applies *inside* the room: your
 members know you host it.
 
-## Whose keys are whose (read this — it confuses everyone once)
+## Whose keys are whose
 
-Two completely separate credentials:
+There are two completely separate credentials:
 
 1. **Relay tokens** (per member, per board): access passes to a board.
    Minted by the host, handed to members privately. Free.
@@ -38,49 +37,49 @@ Two completely separate credentials:
    if your AI tool isn't Claude, that's a party that wouldn't otherwise
    see your work narration.
 
-## Costs, complete list
+## Costs Transparency
 
-| Thing | Cost |
-|---|---|
-| Board relay (Cloudflare Workers free tier) | $0, no card |
-| Your extraction (API-key option) | ~pennies/workday |
+| Thing                                        | Cost |
+| -------------------------------------------- |---|
+| Board relay (Cloudflare Workers free tier)   | $0, no card |
+| Your extraction (API-key option)             | ~pennies/workday |
 | Your extraction (Claude-subscription option) | $0 extra; uses plan limits |
-| The software | free, source included |
+| The software                                 | free, source included |
+
+For reference: Caitlin (dev) has been running this for most of a workday at 5x usage ("dev mode" = extracts every 60 seconds; default is 5 minutes) and running a total of about 80 cents on API for heavy coding days.
 
 ## Setup (host, ~20 minutes)
 
 1. Get the repo (clone or the zip you were sent). You need: macOS,
-   Python 3.12+ (`brew install python@3.13`), node (`brew install node`),
-   a free Cloudflare account (no card; wrangler opens a browser login).
-2. Install your own client: `./install.sh` (it walks you through how
+   Python 3.12+ (`brew install python@3.13`), node (`brew install node`)
+2. Make a free Cloudflare account (no card; wrangler opens a browser login).
+3. Install your own client: `./install.sh` (it walks you through how
    extraction is billed — API key, or your Claude subscription if you
    use Claude Code — and, the important moment, WHICH project folders it
    may observe; nothing outside your picks is ever read). When it asks
    for a relay URL, **leave it empty** — your board doesn't exist yet;
-   step 3 creates it and step 4 adds its lines to `.env`.
-3. Create your board — name it after the ROOM, not a person ("studio",
-   "thesis", "homies"): the name is config plumbing; displays show rooms
+   step 4 creates it and step 5 adds its lines to `.env`.
+4. Create your board — name it after the ROOM of who you'll share it with, not your name ("family",
+   "labmates", "homies"): the name is config plumbing; displays show rooms
    as "with <members>". This also mints member tokens (agree lowercase
    short names with your members first):
    ```
    ./presence/relay/make_board_cf.sh <board-name> <you> <colleague>
    ```
-4. Put YOUR token + the printed URL in your `.env` (the script shows the
+5. Put YOUR token + the printed URL in your `.env` (the script shows the
    exact lines); send your colleague theirs privately.
-5. `python -m presence.pipeline.selftest` — all green means live.
-6. Daily: `python -m presence.render.app` (or generate the Dock app:
+6. `python -m presence.pipeline.selftest` — all green means live.
+7. Daily: `python -m presence.render.app` (or generate the Dock app:
    `python -m presence.render.make_app`).
 
-Your colleague does steps 1–2 and 4–6 with the token you send them —
-they never touch Cloudflare. Read `docs/pilot-kit.md` for the widget
+Your colleague does steps 1, 3, and 5–7 with the token you send them —
+they never touch Cloudflare (step 2 is yours alone). Read `docs/pilot-kit.md` for the widget
 tour and `docs/security-model.md` (one page) for exactly what leaves a
 machine and what a relay compromise could and couldn't expose.
 
 ## Worked example: Matt's board
 
-Matt wants a board with three friends. The credential rule that makes
-this make sense: **extraction billing follows people; relay tokens
-follow (person, board).**
+Hypothetical friend Matt wants a board with three friends. 
 
 - **Matt (host, ~20 min once):** downloads the package, `./install.sh`
   (his own billing choice + folder consent), then creates the room on
@@ -117,7 +116,7 @@ If you already run we.ather, the settings gear covers most of this doc:
   room (previous section).
 - **Creating a brand-new room** is the one step that still needs the
   terminal: `./presence/relay/make_board_cf.sh <room> <you> <friend...>`
-  (steps 3–4 above). After that one command, everything else — including
+  (steps 4–5 above). After that one command, everything else — including
   all future invites — happens in the app. GUI room creation is on the
   roadmap (it needs the Cloudflare API instead of wrangler).
 
@@ -125,11 +124,12 @@ If you already run we.ather, the settings gear covers most of this doc:
 
 - **One deployment = one board.** A second room = run the script again
   with a new name. Boards are deliberately heavy-ish: rooms, not chats.
+- **Multiple boards.** You can run multiple boards simultaneously without overlapping participants - for example, one board with your family members, another with your colleagues, separately. When you have multiple boards, you'll see an option in the GUI to stack them vertically or visually fuse them into a single view (for you only — again, the members of different boards won't see each other.)
 - **Adding a member later:** use the invite button (settings gear →
   your room) or `python -m presence.relay.invite <board> <person>` —
   either one mints the token, registers it with your relay, and hands
   you the message to send privately. Then tell your room — membership
   changes are always visible, never silent.
-- Leaving/pausing is every member's own right: `python -m
+- **Leaving/pausing** is every member's own right: `python -m
   presence.pipeline.pause` purges them from your relay within a cycle,
   and pausing is indistinguishable from simply not working.

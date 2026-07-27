@@ -9,6 +9,21 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 OUT="dist/we.ather"
+
+# Refuse to clobber in-place edits (it happened once — 2026-07-27, doc
+# edits made inside dist/ were lost to a rebuild). Compare the editable
+# files against HEAD; README.md is generated, so it's exempt.
+if [ -d "$OUT" ] && [ "${FORCE:-}" != "1" ]; then
+  while IFS= read -r f; do
+    if ! git show "HEAD:$f" 2>/dev/null | cmp -s - "$OUT/$f"; then
+      echo "ABORT: $OUT/$f differs from the repo version — edited in place?"
+      echo "Port changes into the repo copy first (that's the source the"
+      echo "package is built from), or rerun with FORCE=1 to discard."
+      exit 1
+    fi
+  done < <(cd "$OUT" && find docs install.sh -type f 2>/dev/null)
+fi
+
 rm -rf "$OUT" dist/we.ather.zip
 mkdir -p "$OUT"
 
