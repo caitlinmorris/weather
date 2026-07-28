@@ -51,6 +51,7 @@ git archive HEAD \
   tests \
   install.sh \
   weather \
+  LICENSE \
   requirements.txt \
   docs/self-hosting.md \
   docs/pilot-kit.md \
