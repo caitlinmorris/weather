@@ -51,6 +51,23 @@ def main() -> None:
                   else "configured but unavailable (tool data missing or"
                        " its allowlist empty)"))
 
+    # The likeliest "why is my weather empty" cause: the allowlist covers
+    # only old work (found the hard way, 2026-07-21 — a member's newest
+    # allowlisted activity was three months stale). Surface it here.
+    from datetime import datetime, timezone
+
+    for source in active_sources():
+        beat = source.last_activity()
+        if beat is None:
+            report(WARN, f"{source.name}: no activity found in the "
+                         "allowlisted folders yet")
+            continue
+        age_days = (datetime.now(timezone.utc) - beat).days
+        if age_days >= 3:
+            report(WARN, f"{source.name}: newest allowlisted activity is "
+                         f"{age_days} days old — is your CURRENT project "
+                         "in the allowlist? (settings gear shows it)")
+
     if "claude_code" in requested:
         if not config.ALLOWED_PROJECT_PREFIXES:
             report(FAIL, "PRESENCE_ALLOWLIST is empty — no projects will be captured")

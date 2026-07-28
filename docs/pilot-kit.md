@@ -102,6 +102,19 @@ your rooms never see each other.
 Most settings live behind the gear (⚙) and apply themselves. If you ever
 edit `.env` by hand instead, restart the app afterward.
 
+## Updating
+
+During the beta you'll occasionally get a new zip. Your settings and
+history live in your install folder (`.env` and `data/`) — keep them:
+
+1. Unzip the new version somewhere temporary.
+2. Copy everything from it into your existing we.ather folder,
+   replacing what's there — **except** don't touch your `.env` or
+   `data/`. (`.env` isn't in the zip, so a straight copy-over is safe;
+   just don't delete the folder and start over.)
+3. `./install.sh` again (it keeps your existing `.env` untouched and
+   refreshes dependencies), then relaunch.
+
 ## Stepping away, pausing, quitting
 
 - Closing the window stops everything; you fade to "away" within hours.
