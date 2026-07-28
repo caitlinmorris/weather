@@ -36,3 +36,6 @@ presence/relay/worker/hashes.*.json
 
 # personal writeups (website/substack) — not repo material
 docs/writeups/
+
+# macOS Finder metadata
+.DS_Store
