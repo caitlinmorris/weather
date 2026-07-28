@@ -72,6 +72,13 @@ launch and waits for you to review.
 (That's a tiny launcher that always uses the right Python — if you see
 "No module named ..." errors, it means a bare `python` was used instead.)
 
+**Type it in Terminal — don't double-click `weather` in Finder.** macOS
+blocks downloaded unsigned files opened from Finder ("cannot be
+verified", with no override offered). Terminal isn't gated the same way,
+and the Dock app below is built on your own machine, so Finder launches
+it without complaint. If you hit that popup: click Done (not Move to
+Trash!) and use Terminal or the Dock app instead.
+
 **Prefer a Dock icon?** One-time setup:
 
 ```
