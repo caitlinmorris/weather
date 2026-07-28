@@ -1,12 +1,11 @@
 # we.ather
 
-**Ambient social presence for AI-era work.** A small always-on-top widget
-that lets rooms of 2–12 trusted people share low-resolution "work
-weather" while they work with AI tools — the hum of working *near*
-people, without sharing what anyone is actually saying or doing.
+**Ambient social presence for AI-era work.** A small sticky widget that
+lets rooms of 2–12 trusted people share low-resolution "work weather"
+while they work with AI tools. Recreates the hum of working *near*
+people, without fully sharing what anyone is actually saying or doing.
 
-<!-- screenshot: field view, two rooms stacked, "2 making weather" -->
-<!-- ![we.ather field view](docs/media/field.png) -->
+![we.ather field timelapse](media/weather-timelapse.gif)
 
 Your AI coding tools (Claude Code, Warp) already keep session logs on
 your machine. we.ather reads only the project folders you explicitly
@@ -17,9 +16,7 @@ account. Color = kind of work, position = time. Hovering a fresh cloud
 shows who it is and five words of what they're into. Everything else is
 just weather.
 
-No accounts, no central server, no feed, no metrics. Nothing from
-before you install is ever analyzed — your weather starts when your
-consent does.
+No accounts, no central server, no feed, no metrics.
 
 ## Try it
 
@@ -35,28 +32,29 @@ consent does.
 
 Currently macOS + Claude Code and/or Warp. Extraction runs on your own
 Anthropic API key (~pennies/workday) or your existing Claude
-subscription — your choice at install.
+subscription. Your choice at install.
 
 ## Status
 
-Early beta, developed live during a residency at
-[Stochastic Labs](https://stochasticlabs.org). A small pilot has been
-running for weeks; a wider circle of testers is starting now. Interested?
-Open an issue or reach out — [caitlinmorris.net](https://caitlinmorris.net).
+As of July '26: Early beta. A small pilot has been running for weeks;
+now expanding to a slightly wider circle of people running their own
+boards. Interested? Open an issue or reach out —
+[caitlinmorris.net](https://caitlinmorris.net).
 
-The narrative version — why ambient presence matters, what my research
-on workplace visibility found, and how this design answers it — is on
+The narrative version (why ambient presence matters, my research on
+collaborative and social visibility, and how this design approaches it)
+is on
 [Substack](https://caitlinmaking.substack.com/p/weather-ambient-social-visibility).
 
 ## Research context
 
 we.ather extends my work on calibrated social visibility in
 collaboration (InquiryBits, CSCW) into AI-era work: people consistently
-want *more* visibility to support connection and collaboration — and
+want *more* visibility to support connection and collaboration, and
 firmly want it limited to small trusted groups. The design premise here
-is that those aren't in tension; they're a spec. Design principles,
-decision memos, and an honest lab notebook (including the constructs
-that failed) live in [docs/](docs/).
+is that private work and peripheral visibility aren't inherently in
+tension, they're just a design opportunity. Design principles, decision
+memos, and a running lab notebook live in [docs/](docs/).
 
 ## License
 
