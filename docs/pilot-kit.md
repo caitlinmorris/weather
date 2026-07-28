@@ -36,13 +36,20 @@ cd we.ather
 (If macOS complains the script isn't executable after a zip transfer:
 `chmod +x install.sh` first.)
 
-The installer asks four things: your short name (**must exactly match the
-name your token was registered under** — the self-test's identity line
-confirms or corrects you), how extraction is billed, the relay URL + token
-from your invite, and — the important one — **which project folders
-we.ather may observe**. That list is your consent boundary; nothing
-outside it is ever read. The self-test checks every layer without making
-paid model calls.
+The installer walks you through four things, in order:
+
+1. **Your short name** — must exactly match the name your token was
+   registered under (the self-test's identity line confirms or corrects
+   you).
+2. **How extraction is billed** — your own API key, or your Claude
+   subscription if you use Claude Code on a paid plan.
+3. **Your room** — the relay URL, room name, and your token, all copied
+   from the invite you were sent.
+4. **Which project folders we.ather may observe** — the important one.
+   This list is your consent boundary; nothing outside it is ever read.
+
+It finishes by running a self-test that checks every layer, without
+making any paid model calls.
 
 **Your weather starts at install.** Nothing from before you installed is
 ever analyzed — the first launch opens an honest, empty field ("still
