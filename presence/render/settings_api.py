@@ -33,8 +33,15 @@ def settings_snapshot() -> dict:
     """Current settings for the GUI — secrets reported as presence only."""
     from presence.relay.invite import board_backend
 
+    import json as _json
+
     boards = []
     for b in config.boards():
+        roster_file = config.DATA_DIR / f"roster_{b['name']}.json"
+        try:
+            members = sorted(_json.loads(roster_file.read_text()))
+        except (FileNotFoundError, ValueError):
+            members = []
         boards.append({
             "name": b["name"],
             "url": b["url"],
@@ -42,6 +49,8 @@ def settings_snapshot() -> dict:
             "has_token": bool(b["token"]),
             # non-None means this machine can mint invites for the room
             "hosted_backend": board_backend(b),
+            # everyone ever seen in this room (local memory, ids only)
+            "members_seen": members,
         })
     from presence.extract.cli_client import find_claude
     from presence.extract.extractor import extraction_backend
@@ -157,7 +166,8 @@ class SettingsApi:
             return {"ok": False, "error": str(e)}
         except Exception as e:  # subprocess/timeout surprises, readable-ish
             return {"ok": False, "error": f"{type(e).__name__}: {e}"}
-        return {"ok": True, "message": result["message"]}
+        return {"ok": True, "message": result["message"],
+                "note": result.get("note", "")}
 
     def save_settings(self, payload: dict) -> dict:
         current = config.boards()

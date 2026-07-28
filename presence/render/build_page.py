@@ -30,6 +30,17 @@ def group_cache_data() -> tuple[list[dict], list[str]] | None:
     only place they meet, and only for rendering."""
     merged: dict[str, dict] = {}
     boards: list[dict] = []
+    def roster_remember(board: str, seen: set) -> set:
+        """Union newly seen member ids into the board's local roster file
+        and return the full remembered set. Person ids only — T0-local."""
+        path = config.DATA_DIR / f"roster_{board}.json"
+        try:
+            known = set(json.loads(path.read_text()))
+        except (FileNotFoundError, ValueError):
+            known = set()
+        if seen - known:
+            path.write_text(json.dumps(sorted(known | seen)))
+        return known | seen
     for cache in sorted(config.DATA_DIR.glob("group_cache*.json")):
         if time.time() - cache.stat().st_mtime > CACHE_FRESH_SECONDS:
             continue  # stale board: fall back rather than lie quietly
@@ -61,6 +72,12 @@ def group_cache_data() -> tuple[list[dict], list[str]] | None:
         return None
     me = config.PERSON_ID
     for b in boards:
+        # Membership memory: the relay ring is a 7-day echo that can be
+        # wiped (Fly restarts on secret updates — e.g. every invite), so
+        # a room's roster persists locally as the union of everyone ever
+        # seen there. Labels then survive amnesia instead of regressing
+        # to "new room" (bug found live, 2026-07-28).
+        b["members"] |= roster_remember(b["key"], b["members"])
         others = sorted(b["members"] - {me})
         if not others:
             b["label"] = "new room"  # lights on, nobody home yet

@@ -168,6 +168,11 @@ function renderBoards() {
     tier.onchange = () => b.tier = tier.value;
     const row = el("div", { className: "board" }, name, url, token, tier, rm);
     box.append(row);
+    if (b.members_seen && b.members_seen.length) {
+      box.append(el("div", { className: "hint",
+        style: "margin: 0 0 4px 12px",
+        textContent: "in this room: " + b.members_seen.join(", ") }));
+    }
     if (b.hosted_backend) box.append(invitePanel(b));
   });
 }
@@ -195,7 +200,7 @@ function invitePanel(b) {
     out.style.display = "";
     out.value = r.message;
     note.textContent = "shown once, not stored — copy and send it to them" +
-      " privately, then you're done.";
+      " privately, then you're done. " + (r.note || "");
     who.value = "";
   };
   return el("div", { style: "margin: 2px 0 10px 12px" },

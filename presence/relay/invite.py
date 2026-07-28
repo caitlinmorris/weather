@@ -156,10 +156,20 @@ def invite(board_name: str, person: str) -> dict:
     hashes[person] = hashlib.sha256(token.encode()).hexdigest()
     _push_hashes(board, backend, hashes)
 
+    note = ""
+    if backend == "fly":
+        # fly secrets set restarts the machine -> the in-memory ring
+        # empties. Weather refills as each member's app next pushes;
+        # local roster memory keeps labels stable through it.
+        note = ("note: updating the member list restarted this room's "
+                "relay, so recent weather clears briefly — it refills as "
+                "each member's app next pushes.")
+
     return {
         "person": person,
         "board": board_name,
         "token": token,
+        "note": note,
         "message": (
             f"You're invited to the '{board_name}' we.ather room.\n"
             f"After installing (README), add to your .env:\n\n"
