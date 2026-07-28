@@ -70,14 +70,19 @@ with the change applied. The same is available from the terminal:
 New folders never join silently — the app just prints a one-line notice at
 launch and waits for you to review.
 
-## Daily use
+## How to run
+
+Once installed, this is the whole action: open Terminal, `cd` into your
+we.ather folder, and run
 
 ```
 ./weather
 ```
 
-(That's a tiny launcher that always uses the right Python — if you see
-"No module named ..." errors, it means a bare `python` was used instead.)
+The widget window appears, and that's we.ather running — leave it in a
+corner of your screen while you work. (`./weather` is a tiny launcher
+that always uses the right Python — if you ever see "No module named
+..." errors, a bare `python` was used instead.)
 
 **Type it in Terminal — don't double-click `weather` in Finder.** macOS
 blocks downloaded unsigned files opened from Finder ("cannot be
@@ -97,7 +102,7 @@ once, then right-click its Dock icon → Options → **Keep in Dock** (add
 **Open at Login** if you want it always-on). If you ever move the
 we.ather folder, rerun that command.
 
-One small window, designed for the corner of your screen. Hue = kind of
+Reading the window: hue = kind of
 work, right edge = now, the last 4 hours trail off to the left. The field
 itself attributes nothing to anyone. Hovering an outlined block is the
 deliberate act — like glancing up from your desk: it shows who it is and
