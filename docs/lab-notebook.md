@@ -221,7 +221,20 @@ expensive step of onboarding. Open edge (flagged, not decided): a
 folder allowlisted LATER still extracts back to the global epoch —
 per-folder consent timestamps would close it if it matters.
 
-## Media shot-list (manual captures, ongoing)
+## 2026-07-28 — dist v1 ready: the walkthrough method's tally
+
+Three days of fresh-folder walkthroughs on the real artifact (download
+link included) before sharing: ten shipped fixes, every one found by
+being a new user rather than imagining one — solo boards, one .env
+dialect, tests-in-dist, host-aware installer, ./weather launcher,
+consent-starts-the-clock, Gatekeeper guidance, Dock-app repoint guard,
+roster memory through relay amnesia, member-flow install. Verified live
+today: three people on the dan board (incl. a duplicate-Caitlin member
+install), labels stable through a Fly ring wipe. Known-untested at
+ship: CF invite path (simpler twin of the tested Fly one) and a full
+subscription-billing workday. we.ather.zip: 132K. Distribution is a
+download link + a friend's invite message — nothing routed through
+anyone.
 
 Grab when convenient; store outside the repo or in a gitignored media/
 folder. ⚠ = contains real content — review before any publication use.
