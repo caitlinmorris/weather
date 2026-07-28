@@ -6,6 +6,7 @@ while they work with AI tools. Recreates the hum of working *near*
 people, without fully sharing what anyone is actually saying or doing.
 
 ![we.ather field timelapse](media/weather-timelapse.gif)
+_Timelapse view of two people working in a shared board over several hours._
 
 Your AI coding tools (Claude Code, Warp) already keep session logs on
 your machine. we.ather reads only the project folders you explicitly
