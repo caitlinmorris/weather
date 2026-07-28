@@ -41,8 +41,25 @@ exec .venv/bin/python -m presence.render.app >> data/weather.log 2>&1
 """
 
 
+def baked_repo(bundle: Path) -> Path | None:
+    """The install folder an existing bundle's launcher points at."""
+    launcher = bundle / "Contents" / "MacOS" / "weather"
+    if not launcher.is_file():
+        return None
+    for line in launcher.read_text().splitlines():
+        if line.startswith('cd "'):
+            return Path(line.split('"')[1])
+    return None
+
+
 def make_app(target_dir: Path, repo: Path = REPO_ROOT) -> Path:
     bundle = target_dir / "we.ather.app"
+    previous = baked_repo(bundle)
+    if previous is not None and previous != repo:
+        # One Dock app, one baked path: rebuilding from a second install
+        # (e.g. a test folder) silently repoints the icon — say so.
+        print(f"NOTE: replacing the Dock app that pointed at {previous}")
+        print("      (rerun make_app from that folder to point it back)")
     macos = bundle / "Contents" / "MacOS"
     macos.mkdir(parents=True, exist_ok=True)
     (bundle / "Contents" / "Info.plist").write_text(INFO_PLIST)
@@ -57,8 +74,8 @@ def main() -> None:
     target.mkdir(parents=True, exist_ok=True)
     bundle = make_app(target)
     print(f"created {bundle}")
-    print("open it once from Finder (right-click → Open the first time,")
-    print("since it's unsigned), then drag it to the Dock.")
+    print("double-click it in Finder to open (built locally, so macOS")
+    print("doesn't block it), then drag it to the Dock.")
     print(f"app output logs to: {REPO_ROOT / 'data' / 'weather.log'}")
 
 
