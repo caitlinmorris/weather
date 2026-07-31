@@ -8,7 +8,8 @@ JSON that ever leaves your machine.*
 
 ## What you need
 
-- macOS, and you do real work in **Claude Code** and/or **Warp**.
+- macOS, and you do real work in **Claude Code**, **Warp**, and/or
+  **Codex** (Codex support is newest — tell us what breaks).
 - An **invite from your room's host** — one private message containing
   your room's relay URL and your personal token.
 - A way to bill the small AI model that summarizes your work (~pennies
@@ -24,6 +25,15 @@ metadata is never read either. One consent point to know: excerpts of your
 own prompts are sent to the Anthropic API (under your own key or login) to
 produce your state — for a Warp user, that's a party that wouldn't
 otherwise see your work narration.
+
+**Codex users, what's read:** Codex keeps local session files under
+`~/.codex/sessions/`. we.ather reads only your typed prompts and the
+assistant's prose from sessions whose working directory is in your
+allowlist — the folder check happens on a session's first line, before
+any content is read; tool calls and internals are never read. The same
+consent point as Warp applies: excerpts go to the Anthropic API (under
+your own key or login) to produce your state — a party that wouldn't
+otherwise see your Codex work.
 
 ## Install
 

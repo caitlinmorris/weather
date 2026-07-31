@@ -70,6 +70,9 @@ def settings_snapshot() -> dict:
         "warp_allowlist": [p.strip() for p in
                            (config.env_value("PRESENCE_ALLOWLIST_WARP") or "").split(",")
                            if p.strip()],
+        "codex_allowlist": [p.strip() for p in
+                            (config.env_value("PRESENCE_ALLOWLIST_CODEX") or "").split(",")
+                            if p.strip()],
         "debug": config.env_value("PRESENCE_DEBUG") == "1",
         "verbose_available": config.verbose_enabled(),
         "boards": boards,
@@ -91,6 +94,7 @@ def settings_to_env(payload: dict, current_boards: list[dict]) -> dict:
         "PRESENCE_SOURCES": ",".join(payload.get("sources") or ["claude_code"]),
         "PRESENCE_ALLOWLIST": ",".join(payload.get("claude_allowlist") or []),
         "PRESENCE_ALLOWLIST_WARP": ",".join(payload.get("warp_allowlist") or []),
+        "PRESENCE_ALLOWLIST_CODEX": ",".join(payload.get("codex_allowlist") or []),
         "PRESENCE_DEBUG": "1" if payload.get("debug") else None,
     }
     if (payload.get("api_key") or "").strip():

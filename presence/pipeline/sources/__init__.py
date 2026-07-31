@@ -30,6 +30,9 @@ def active_sources() -> list:
         elif name == "warp":
             from presence.pipeline.sources.warp import WarpSource
             out.append(WarpSource())
+        elif name == "codex":
+            from presence.pipeline.sources.codex import CodexSource
+            out.append(CodexSource())
         else:
             print(f"unknown capture source '{name}' — skipping")
     return [s for s in out if s.available()]

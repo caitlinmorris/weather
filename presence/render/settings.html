@@ -71,6 +71,9 @@
   <label class="row" style="margin-top:8px"><input type="checkbox" id="src_warp"> Warp sessions</label>
   <ul class="plain" id="warpFolders" style="margin-left:24px"></ul>
   <div style="margin-left:24px"><button id="addWarp">choose a folder…</button></div>
+  <label class="row" style="margin-top:8px"><input type="checkbox" id="src_codex"> Codex sessions</label>
+  <ul class="plain" id="codexFolders" style="margin-left:24px"></ul>
+  <div style="margin-left:24px"><button id="addCodex">choose a folder…</button></div>
   <div class="hint">Only what you select here is ever read. Nothing is
   pre-chosen for you.</div>
 </section>
@@ -126,14 +129,20 @@ function renderClaudeProjects() {
   }
 }
 
-function renderWarpFolders() {
-  const box = document.getElementById("warpFolders");
+function renderFolderList(boxId, list, rerender) {
+  const box = document.getElementById(boxId);
   box.innerHTML = "";
-  S.warp_allowlist.forEach((path, i) => {
+  list.forEach((path, i) => {
     const rm = el("button", { textContent: "remove", className: "danger" });
-    rm.onclick = () => { S.warp_allowlist.splice(i, 1); renderWarpFolders(); };
+    rm.onclick = () => { list.splice(i, 1); rerender(); };
     box.append(el("li", {}, path, rm));
   });
+}
+function renderWarpFolders() {
+  renderFolderList("warpFolders", S.warp_allowlist, renderWarpFolders);
+}
+function renderCodexFolders() {
+  renderFolderList("codexFolders", S.codex_allowlist, renderCodexFolders);
 }
 
 function renderBoards() {
@@ -211,6 +220,7 @@ function collect() {
   const sources = [];
   if (document.getElementById("src_claude").checked) sources.push("claude_code");
   if (document.getElementById("src_warp").checked) sources.push("warp");
+  if (document.getElementById("src_codex").checked) sources.push("codex");
   const claude = [...document.querySelectorAll("#claudeProjects input")]
     .filter(cb => cb.checked).map(cb => cb.dataset.name);
   return {
@@ -220,6 +230,7 @@ function collect() {
     sources,
     claude_allowlist: claude,
     warp_allowlist: S.warp_allowlist,
+    codex_allowlist: S.codex_allowlist,
     debug: document.getElementById("debug").checked,
     boards: S.boards.map(b => ({
       name: b.name, url: b.url, tier: b.tier, token: b.token || "",
@@ -260,9 +271,11 @@ async function init() {
   syncKeyRow();
   document.getElementById("src_claude").checked = S.sources.includes("claude_code");
   document.getElementById("src_warp").checked = S.sources.includes("warp");
+  document.getElementById("src_codex").checked = S.sources.includes("codex");
   document.getElementById("debug").checked = S.debug;
   renderClaudeProjects();
   renderWarpFolders();
+  renderCodexFolders();
   renderBoards();
 
   document.getElementById("addWarp").onclick = async () => {
@@ -270,6 +283,13 @@ async function init() {
     if (folder && !S.warp_allowlist.includes(folder)) {
       S.warp_allowlist.push(folder);
       renderWarpFolders();
+    }
+  };
+  document.getElementById("addCodex").onclick = async () => {
+    const folder = await window.pywebview.api.choose_warp_folder();
+    if (folder && !S.codex_allowlist.includes(folder)) {
+      S.codex_allowlist.push(folder);
+      renderCodexFolders();
     }
   };
   document.getElementById("addBoard").onclick = () => {

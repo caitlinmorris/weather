@@ -31,7 +31,8 @@ No accounts, no central server, no feed, no metrics.
   [Security Model](docs/security-model.md) — one page, and if the code
   and that page ever disagree, that's a bug: tell me.
 
-Currently macOS + Claude Code and/or Warp. Extraction runs on your own
+Currently macOS + Claude Code, Warp, and/or Codex (newest — tell us
+what breaks). Extraction runs on your own
 Anthropic API key (~pennies/workday) or your existing Claude
 subscription. Your choice at install.
 

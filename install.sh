@@ -60,6 +60,10 @@ elif [ -f .env ]; then
     read -r -p "Warp folders to observe (absolute paths, comma-separated): " WARP_ALLOW
     printf 'PRESENCE_ALLOWLIST_WARP=%s\n' "$WARP_ALLOW" >> .env
   fi
+  if [[ "$SOURCES" == *codex* ]]; then
+    read -r -p "Codex folders to observe (absolute paths, comma-separated): " CODEX_ALLOW
+    printf 'PRESENCE_ALLOWLIST_CODEX=%s\n' "$CODEX_ALLOW" >> .env
+  fi
   printf 'PRESENCE_START=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" >> .env
   chmod 600 .env
   echo "consent recorded in .env"
@@ -98,7 +102,7 @@ else
   fi
 
   echo
-  read -r -p "capture sources [claude_code / warp / claude_code,warp] (default claude_code): " SOURCES
+  read -r -p "capture sources [claude_code / warp / codex — comma-separate] (default claude_code): " SOURCES
   SOURCES=${SOURCES:-claude_code}
 
   ALLOW=""
@@ -131,6 +135,14 @@ else
     read -r -p "warp folders: " WARP_ALLOW
   fi
 
+  CODEX_ALLOW=""
+  if [[ "$SOURCES" == *codex* ]]; then
+    echo
+    echo "Which folders may we.ather observe in Codex? (Absolute paths,"
+    echo "comma-separated — sessions started outside them are never read)"
+    read -r -p "codex folders: " CODEX_ALLOW
+  fi
+
   cat > .env <<EOF
 ANTHROPIC_API_KEY=$APIKEY
 PRESENCE_PERSON_ID=$PERSON
@@ -138,6 +150,7 @@ PRESENCE_GROUP_MODE=person
 PRESENCE_SOURCES=$SOURCES
 PRESENCE_ALLOWLIST=$ALLOW
 PRESENCE_ALLOWLIST_WARP=$WARP_ALLOW
+PRESENCE_ALLOWLIST_CODEX=$CODEX_ALLOW
 PRESENCE_START=$(date -u +%Y-%m-%dT%H:%M:%S+00:00)
 EOF
   if [ -n "$BOARDNAME" ]; then
