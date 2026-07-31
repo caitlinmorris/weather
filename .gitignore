@@ -39,3 +39,6 @@ docs/writeups/
 
 # macOS Finder metadata
 .DS_Store
+
+# probe outputs from testers (structure-only, but keep local)
+docs/codex-probes-output.txt
