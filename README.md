@@ -51,7 +51,7 @@ is on
 ## Research context
 
 we.ather extends my work on calibrated social visibility in
-collaboration (InquiryBits, CSCW) into AI-era work: people consistently
+collaboration into AI-era work: people consistently
 want *more* visibility to support connection and collaboration, and
 firmly want it limited to small trusted groups. The design premise here
 is that private work and peripheral visibility aren't inherently in
