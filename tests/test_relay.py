@@ -165,3 +165,24 @@ def test_wire_payload_is_accepted_by_relay(client):
     )
     r = client.post("/state", json=to_wire(state), headers=auth(TOK_A))
     assert r.status_code == 204
+
+
+def test_cap_tier_strips_above_board_tier(monkeypatch):
+    # A capped board refuses to STORE above its tier, whatever a client
+    # sends — the study-board guarantee (2026-08-04).
+    monkeypatch.setenv("CAP_TIER", "topic")
+    capped = TestClient(create_app(token_hashes=HASHES))
+    auth = {"Authorization": f"Bearer {TOK_A}"}
+    r = capped.post("/state", json=wire(topic_gist="a full verbose gist"),
+                    headers=auth)
+    assert r.status_code == 204  # stripped, not rejected
+    stored = capped.get("/group", headers=auth).json()["per_person"][0]["states"][0]
+    assert stored["topic_gist"] == ""
+    assert stored["topic_micro"] == "synthesizing fixtures"  # topic survives
+
+    monkeypatch.setenv("CAP_TIER", "presence")
+    presence_board = TestClient(create_app(token_hashes=HASHES))
+    r = presence_board.post("/state", json=wire(), headers=auth)
+    assert r.status_code == 204
+    stored = presence_board.get("/group", headers=auth).json()["per_person"][0]["states"][0]
+    assert stored["topic_micro"] == "" and stored["topic_tags"] == []

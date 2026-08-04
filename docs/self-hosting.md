@@ -129,6 +129,12 @@ If you already run we.ather, the settings gear covers most of this doc:
 
 - **One deployment = one board.** A second room = run the script again
   with a new name. Boards are deliberately heavy-ish: rooms, not chats.
+- **Capping a room's tier** (optional, at creation):
+  `CAP_TIER=topic ./presence/relay/make_board_cf.sh <board> <members...>`
+  bakes the cap into the relay itself — it strips anything above that
+  tier before storing, regardless of any member's settings. Use when
+  the room must be able to promise its maximum resolution (e.g. a
+  study). Tell your members it's capped; disclosure goes both ways.
 - **Multiple boards.** You can run multiple boards simultaneously without overlapping participants - for example, one board with your family members, another with your colleagues, separately. When you have multiple boards, you'll see an option in the GUI to stack them vertically or visually fuse them into a single view (for you only — again, the members of different boards won't see each other.)
   In `.env` terms: each board gets its own `RELAY_URL_<NAME>` /
   `RELAY_TOKEN_<NAME>` / `PRESENCE_TIER_<NAME>` lines, and

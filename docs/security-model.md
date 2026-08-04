@@ -40,6 +40,12 @@ per board and visible to all its members:
   option is not enabled. Get in touch if you want to use a more verbose
   version!
 
+A room can also be **capped at creation**: its relay then strips
+anything above the capped tier before storing, no matter how any
+member's client is configured. A capped room can honestly attest "this
+room cannot collect more than its tier" — used for evaluation-study
+boards, available to any host (`CAP_TIER=topic` when creating).
+
 That's it. There is no message content, no file names, no code, no
 error text, no evidence or reasoning. The relay **rejects** any payload
 containing fields beyond these — enforcement is server-side, not client

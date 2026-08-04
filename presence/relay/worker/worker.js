@@ -112,6 +112,17 @@ export class Board {
       if (payload.person_id !== person)
         return bad(403, "token may only write its own state");
       delete payload.openness; // deprecated: never stored
+      // Board-level tier cap (CAP_TIER var, baked in at creation): the
+      // room itself refuses to STORE above its tier, whatever any
+      // client sends. Strip, don't reject — misconfigured clients
+      // degrade gracefully. Exists so study boards can attest "this
+      // room cannot collect verbose data" (2026-08-04).
+      const cap = this.env.CAP_TIER;
+      if (cap === "topic" || cap === "presence") payload.topic_gist = "";
+      if (cap === "presence") {
+        payload.topic_micro = "";
+        payload.topic_tags = [];
+      }
       const ring = this.rings[person] || (this.rings[person] = []);
       this.prune(ring);
       // Idempotent by timestamp, latest-write-wins (contract parity).

@@ -22,6 +22,16 @@ CONFIG="$WORKDIR/wrangler.$BOARD.toml"
 
 sed "s/BOARDNAME/$BOARD/" "$WORKDIR/wrangler.toml" > "$CONFIG"
 
+# Optional board-level tier cap, baked into the relay itself:
+#   CAP_TIER=topic ./presence/relay/make_board_cf.sh study alice bob
+# The relay then STRIPS any data above that tier before storing — no
+# member's client, however configured, can make this room collect more.
+# For rooms that must attest their maximum resolution (e.g. studies).
+if [ -n "${CAP_TIER:-}" ]; then
+  printf '\n[vars]\nCAP_TIER = "%s"\n' "$CAP_TIER" >> "$CONFIG"
+  echo "board tier cap: $CAP_TIER — the relay refuses to store anything above it"
+fi
+
 # Mint one token per member; hashes to the relay secret, tokens to humans.
 # Hashes (never tokens) also persist to a local file, so an interrupted run
 # can finish the secret upload without re-minting everyone's tokens.

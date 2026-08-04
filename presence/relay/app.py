@@ -100,6 +100,16 @@ def create_app(token_hashes: dict[str, str] | None = None) -> FastAPI:
         _prune(ring)
         payload = state.model_dump(mode="json")
         payload.pop("openness", None)  # deprecated: never stored
+        # Board-level tier cap (CAP_TIER env): the room refuses to STORE
+        # above its tier, whatever any client sends. Strip, don't reject
+        # — misconfigured clients degrade gracefully. Contract parity
+        # with the CF worker's CAP_TIER var (2026-08-04).
+        cap = os.environ.get("CAP_TIER", "")
+        if cap in ("topic", "presence"):
+            payload["topic_gist"] = ""
+        if cap == "presence":
+            payload["topic_micro"] = ""
+            payload["topic_tags"] = []
         # Idempotent by timestamp, latest-write-wins: clients backfill their
         # recent window every cycle, so the ring self-heals after restarts
         # without duplicates — and a re-extracted (corrected) state replaces
