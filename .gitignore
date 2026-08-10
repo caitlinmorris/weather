@@ -42,3 +42,6 @@ docs/writeups/
 
 # probe outputs from testers (structure-only, but keep local)
 docs/codex-probes-output.txt
+
+# native prototyping workspace (local)
+swift-widget/
