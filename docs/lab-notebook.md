@@ -251,6 +251,23 @@ folder. ⚠ = contains real content — review before any publication use.
 - [ ] Signal dial cycling presence/topic/topic+ (resolution as a dial)
 - [ ] Lara's first clouds arriving (when it happens — the Warp milestone)
 
+## 2026-09-14 — the day the colors lied: rollup's mode-smoothing
+
+Caitlin: "everything I've done for hours shows as building — including
+literally drafting an essay from scratch." Extraction was innocent
+(private store: shaping/debugging/polishing/writing all present; the
+essay window = writing at 0.95 conf). The flattener was rollup:
+published phase was a recency-weighted MODE over the 4h window —
+dots-era smoothing that let a building-heavy day swallow every
+transition. It had been flattening all along; only a stark contrast
+(an essay on a build day) made it visible. Ruling (Caitlin): the color
+is the in-the-moment state, not an average of the day — phase now
+follows the newest observation like the topic fields, with one
+mode-era rule kept: unknown never beats a known value. 238 states
+republished; today's distribution restored. Method note: the private
+evidence field paid for itself — extraction's innocence was
+established in one query.
+
 ## Standing habit
 
 Stage closes and surprises get an entry the same day. Media beats memory:
