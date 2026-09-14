@@ -63,7 +63,22 @@ def rollup_window(
     if allowed("topic_tags"):
         state.topic_tags = list(newest.topic.tags)
     if allowed("phase"):
-        state.phase = _recency_weighted_mode([o.phase for o in observations])
+        # The color is the in-the-moment state, not an average of the day
+        # (Caitlin ruling, 2026-09-14): each published window carries its
+        # OWN phase, matching the topic fields above. The 4h-mode
+        # smoothing was dots-era; on a building-heavy day it published a
+        # writing window as building — flattening exactly the
+        # transitions the field is designed to make legible. Day-level
+        # texture already has its aggregate home: the weather phrase's
+        # "mostly …" suffix.
+        # One prior rule survives (from the mode era): unknown never
+        # beats a known value — if the newest window ABSTAINED, fall
+        # back to the most recent known phase rather than erasing it.
+        state.phase = next(
+            (o.phase for o in reversed(observations)
+             if o.phase != Phase.UNKNOWN),
+            Phase.UNKNOWN,
+        )
     if allowed("stance"):  # T1: stays UNKNOWN at ambient tier
         state.stance = _recency_weighted_mode([o.stance for o in observations])
     if allowed("momentum"):  # T1: stays UNKNOWN at ambient tier

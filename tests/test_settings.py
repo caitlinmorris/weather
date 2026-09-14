@@ -175,3 +175,24 @@ def test_epoch_clamp_consent_starts_the_clock():
     assert epoch_clamp(None, t(14), t(12)) == (False, t(12))
     # already-covered past the epoch: covered wins
     assert epoch_clamp(t(13), t(14), t(12)) == (False, t(13))
+
+
+def test_published_phase_is_the_windows_own_not_the_days_mode():
+    # Caitlin ruling 2026-09-14: a writing window on a building-heavy
+    # day publishes as WRITING. The 4h-mode smoothing flattened it.
+    from datetime import datetime, timedelta, timezone
+    from presence.core.rollup import rollup_window
+    from presence.core.schema import Phase, SessionObservation
+
+    t0 = datetime(2026, 9, 14, 12, 0, tzinfo=timezone.utc)
+    obs = [
+        SessionObservation(person_id="t", t_start=t0 + timedelta(minutes=i * 10),
+                           t_end=t0 + timedelta(minutes=i * 10 + 9),
+                           phase=Phase.BUILDING)
+        for i in range(6)
+    ]
+    obs.append(SessionObservation(person_id="t",
+                                  t_start=t0 + timedelta(minutes=60),
+                                  t_end=t0 + timedelta(minutes=70),
+                                  phase=Phase.WRITING))
+    assert rollup_window(obs).phase == Phase.WRITING
