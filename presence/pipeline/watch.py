@@ -21,6 +21,7 @@ import httpx
 
 from presence.pipeline import extract_all
 from presence.pipeline.config import (
+    BACKFILL_HOURS,
     PERSON_ID,
     PUBLIC_DB,
     allowed_transcripts,
@@ -39,9 +40,6 @@ DEBUG_MODE = env_value("PRESENCE_DEBUG") == "1"
 INTERVAL_SECONDS = int(env_value("PRESENCE_INTERVAL_SECONDS") or (60 if DEBUG_MODE else 300))
 # Live mode wants the current session visible before it is 10 minutes old.
 LIVE_MIN_MINUTES = 2 if DEBUG_MODE else 5
-
-
-BACKFILL_HOURS = 4  # match the field view's window
 
 
 def sync_relay(client: RelayClient, store: PublicStore) -> str:

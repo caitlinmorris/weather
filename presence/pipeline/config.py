@@ -11,6 +11,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROJECTS_ROOT = Path.home() / ".claude" / "projects"
 SESSION_GAP_MINUTES = 30
+# Push and extraction window; template.html's FIELD_WINDOW_H matches it by hand.
+BACKFILL_HOURS = 4
 
 
 def env_value(name: str) -> str | None:

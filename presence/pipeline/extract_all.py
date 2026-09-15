@@ -15,7 +15,7 @@ Usage: python -m presence.pipeline.extract_all
 from __future__ import annotations
 
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from presence.core import rollup
 from presence.extract.extractor import (
@@ -24,7 +24,12 @@ from presence.extract.extractor import (
     extraction_backend,
     load_api_key,
 )
-from presence.pipeline.config import PRIVATE_DB, PUBLIC_DB, install_epoch
+from presence.pipeline.config import (
+    BACKFILL_HOURS,
+    PRIVATE_DB,
+    PUBLIC_DB,
+    install_epoch,
+)
 from presence.pipeline.sample_extract import MIN_MINUTES, gather_segments
 from presence.pipeline.store import PrivateStore
 
@@ -33,7 +38,9 @@ def epoch_clamp(covered, seg_end, epoch):
     """Apply the consent epoch: a segment that ended before PRESENCE_START
     is skipped entirely; one straddling it extracts only events after the
     epoch (by flooring `covered` there). Pre-install history is never
-    analyzed — consent starts the clock (Caitlin ruling, 2026-07-27)."""
+    analyzed — consent starts the clock (Caitlin ruling, 2026-07-27).
+    The caller passes backfill_epoch(), which may be the rolling window
+    edge rather than PRESENCE_START."""
     if epoch is None:
         return False, covered
     if seg_end <= epoch:
@@ -43,10 +50,23 @@ def epoch_clamp(covered, seg_end, epoch):
     return False, covered
 
 
-def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
+def backfill_epoch(install: datetime | None, now: datetime) -> datetime:
+    """Nothing before this is read: the later of PRESENCE_START and the
+    BACKFILL_HOURS window. Bounds installs with no stamp too (lab notebook,
+    2026-09-14)."""
+    edge = now - timedelta(hours=BACKFILL_HOURS)
+    return edge if install is None else max(install, edge)
+
+
+def run(
+    min_minutes: int = MIN_MINUTES,
+    verbose: bool = True,
+    now: datetime | None = None,
+) -> dict:
     """One extract-and-publish pass. Returns counts for the caller's log line."""
     if extraction_backend() != "claude_cli" and not load_api_key():
         raise ExtractionError("no ANTHROPIC_API_KEY in environment or .env")
+    epoch = backfill_epoch(install_epoch(), now or datetime.now(timezone.utc))
 
     private = PrivateStore(PRIVATE_DB)
 
@@ -71,7 +91,7 @@ def run(min_minutes: int = MIN_MINUTES, verbose: bool = True) -> dict:
             # extracted under older prompt versions is left standing; no
             # mass re-extraction on version bumps.)
             covered = private.covered_until(person, start, end)
-            skip, covered = epoch_clamp(covered, seg.t_end, install_epoch())
+            skip, covered = epoch_clamp(covered, seg.t_end, epoch)
             if skip:
                 counts["skipped"] += 1
                 continue

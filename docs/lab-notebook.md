@@ -251,6 +251,27 @@ folder. ⚠ = contains real content — review before any publication use.
 - [ ] Signal dial cycling presence/topic/topic+ (resolution as a dial)
 - [ ] Lara's first clouds arriving (when it happens — the Warp milestone)
 
+## 2026-09-14 — the window bounds the drawing, not the reading
+
+Dan widened his allowlist from four projects to two whole folders and
+relaunched. Expectation: the app looks at the last four hours. Data: the
+first cycle ran 20+ minutes and summarized ~217 sessions going back to
+July, roughly $2.50 of Haiku, before he killed it. His .env predates the
+consent-starts-the-clock stamp (installs before 07-27 "behave as
+before"), so nothing floored the backfill — exactly the open edge the
+07-27 entry flagged, hit by an old install instead of a late folder.
+The 4h window lived only in the template and the relay push; the scanner
+had no notion of time at all. Decision: extraction gets a rolling floor,
+the later of PRESENCE_START and now − BACKFILL_HOURS, fed through the
+existing epoch_clamp (straddling sessions extract only events past the
+edge, so a long-running current session still appears). One constant in
+config for relay push and extraction; the template keeps its own 4 by
+hand — wiring it through build_page is a separate change. Rejected
+24h (six times the cold-start cost, and the relay never ships more than
+4h anyway) and an mtime prefilter (an optimization, not a rule; can't
+express straddlers). What can't be drawn is never summarized. Dry run
+on Dan's data after the change: 2 segments to extract, 348 skipped.
+
 ## Standing habit
 
 Stage closes and surprises get an entry the same day. Media beats memory:
